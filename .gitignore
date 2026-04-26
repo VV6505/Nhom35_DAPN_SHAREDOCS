@@ -1,5 +1,16 @@
-/Bai6/KhachSan/build/
-/Bai7/HocSinh/build/
-/Bai8/CanBoGiaoVien/build/
-/Bai9/ThuVien/build/
-/Bai10/BienLaiTienDien/build/
+# 1. Chặn tất cả các thư mục build ở mọi cấp độ (Bai6, Bai7, Bai10...)
+build/
+**/build/
+
+# 2. Chặn các file tạm của Visual Studio (Cực kỳ quan trọng để tránh lỗi Permission)
+.vs/
+[Bb]in/
+[Oo]bj/
+
+# 3. Chặn các file cấu hình cá nhân
+*.user
+*.suo
+*.sln.docstates
+
+# 4. Chặn các file log
+*.log

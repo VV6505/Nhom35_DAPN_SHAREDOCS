@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Hệ thống Tài liệu UTE</title>
+    <title>@ViewData["Title"] - UTE Document Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/HeThong_User.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header class="header">
@@ -17,6 +17,10 @@
             </div>
         </a>
         <div class="header-right">
+            <div class="points-chip" title="Điểm tích lũy">
+                <span class="points-ico">⭐</span>
+                <span id="headerPoints">340</span>
+            </div>
             <div class="bell-wrap" id="bellWrap">
                 <button class="bell-btn" onclick="toggleNotif()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -25,24 +29,8 @@
                     </svg>
                     <span class="bell-badge" id="bellCount">4</span>
                 </button>
-
                 <div class="notif-dropdown" id="notifDropdown">
-                    <div class="notif-header">
-                        <h4>Thông báo</h4>
-                        <a href="#">Đã đọc tất cả</a>
-                    </div>
-                    <div class="notif-list">
-                        <div class="notif-item unread">
-                            <div class="notif-dot"></div>
-                            <div class="notif-content">
-                                <div class="notif-title">Tài liệu "Giáo trình CTDL&GT" đã được duyệt</div>
-                                <div class="notif-time">5 phút trước</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="notif-footer">
-                        <a href="#">Xem tất cả thông báo →</a>
-                    </div>
+                    @* ... (Giữ nguyên nội dung notif-list từ code bạn gửi) ... *@
                 </div>
             </div>
             <div class="user-avatar">
@@ -54,36 +42,31 @@
 
     <div class="layout">
         <nav class="sidenav">
-            <a class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")"
-               href="@Url.Action("Index", "Home")">
-                <i class="nav-icon">🏠</i> Trang chủ
+            <a class="nav-item active" onclick="showPage('dashboard', this)">
+                🏠 Trang chủ
             </a>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">🔍</i> Danh mục tài liệu
+            <a class="nav-item" onclick="showPage('search', this)">
+                🔍 Danh mục tài liệu
             </a>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">📤</i> Đăng tải tài liệu
+            <a class="nav-item" onclick="showPage('upload', this)">
+                📤 Đăng tải tài liệu
             </a>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">🚩</i> Báo cáo vi phạm
+            <a class="nav-item" onclick="showPage('report', this)">
+                🚩 Báo cáo vi phạm
             </a>
-
             <div class="nav-divider"></div>
-
-            <a class="nav-item" href="#">
-                <i class="nav-icon">👤</i> Thông tin cá nhân
+            <a class="nav-item" onclick="showPage('profile', this)">
+                👤 Thông tin cá nhân
             </a>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">⭐</i> Điểm tích lũy
+            <a class="nav-item" onclick="showPage('points', this)">
+                ⭐ Điểm tích lũy
             </a>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">📂</i> Tài liệu cá nhân
+            <a class="nav-item" onclick="showPage('personal', this)">
+                📂 Tài liệu cá nhân
             </a>
-
             <div class="nav-divider"></div>
-
             <a class="nav-item logout" href="#">
-                <i class="nav-icon">🚪</i> Đăng xuất
+                🚪 Đăng xuất
             </a>
         </nav>
 
@@ -92,18 +75,25 @@
         </main>
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
-        function toggleNotif() {
-            document.getElementById("notifDropdown")?.classList.toggle("open");
-        }
+    <div class="modal-overlay" id="allNotifModal" onclick="if (event.target === this) closeAllNotif();">
+        @* ... (Nội dung modal-box từ code bạn gửi) ... *@
+    </div>
 
-        document.addEventListener("click", function (e) {
-            const bellWrap = document.getElementById("bellWrap");
-            if (bellWrap && !bellWrap.contains(e.target)) {
-                document.getElementById("notifDropdown")?.classList.remove("open");
-            }
-        });
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* Copy toàn bộ thẻ <script> từ code của bạn vào đây *@
+    <script>
+        function showPage(p, el) {
+            document.querySelectorAll(".page-section").forEach((s) => s.classList.remove("active"));
+            document.querySelectorAll(".sidenav .nav-item").forEach((n) => n.classList.remove("active"));
+            document.getElementById("page-" + p).classList.add("active");
+            if (el) el.classList.add("active");
+            closeNotif();
+        }
+        function toggleNotif() { document.getElementById("notifDropdown").classList.toggle("open"); }
+        function closeNotif() { document.getElementById("notifDropdown").classList.remove("open"); }
+        // ... Thêm các hàm còn lại của bạn ...
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

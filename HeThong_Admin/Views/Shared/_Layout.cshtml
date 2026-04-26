@@ -39,13 +39,6 @@
                                 <div class="notif-time">Mới đây</div>
                             </div>
                         </div>
-                        <div class="notif-item">
-                            <div class="notif-dot read"></div>
-                            <div class="notif-content">
-                                <div class="notif-title">Báo cáo vi phạm #102 đã được xử lý</div>
-                                <div class="notif-time">1 giờ trước</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -59,22 +52,26 @@
     <div class="layout">
         <nav class="sidenav">
             <div class="nav-group-label">TỔNG QUAN</div>
-            <a class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")"
+            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"
                href="@Url.Action("Index", "Home")">
                 <i class="nav-icon">📊</i> Xem thống kê
             </a>
 
             <div class="nav-group-label">QUẢN LÝ</div>
-            <a class="nav-item" href="#">
+            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "NguoiDung" ? "active" : "")"
+               href="@Url.Action("Index", "NguoiDung")">
                 <i class="nav-icon">👥</i> Quản lý người dùng
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DanhMuc" ? "active" : "")"
+               href="@Url.Action("Index", "DanhMuc")">
                 <i class="nav-icon">📁</i> Cập nhật danh mục
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DuyetTaiLieu" ? "active" : "")"
+               href="@Url.Action("Index", "DuyetTaiLieu")">
                 <i class="nav-icon">📄</i> Duyệt tài liệu
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Bao Cao" ? "active" : "")"
+               href="@Url.Action("Index", "Bao Cao")">
                 <i class="nav-icon">⚠️</i> Báo cáo vi phạm
             </a>
 
@@ -87,7 +84,7 @@
             </a>
 
             <div class="nav-divider"></div>
-            <a class="nav-item logout" href="#">
+            <a class="nav-item logout" href="@Url.Action("Logout", "Account")"> 
                 <i class="nav-icon">🚪</i> Đăng xuất
             </a>
         </nav>

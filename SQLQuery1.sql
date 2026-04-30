@@ -274,7 +274,10 @@ INSERT INTO TaiKhoan (MaTK, TenTK, MatKhau, MaVaiTro, TrangThai) VALUES
 ('TK007', 'sv_lan', '123456', 'VT003', N'Đang hoạt động'),
 ('TK008', 'sv_hung', '123456', 'VT003', N'Tạm khóa'),
 ('TK009', 'sv_mai', '123456', 'VT003', N'Đang hoạt động'),
-('TK010', 'sv_khoa', '123456', 'VT003', N'Đang hoạt động');
+('TK010', 'sv_khoa', '123456', 'VT003', N'Đang hoạt động'),
+('TK011', 'sv_tu', '123456', 'VT003', N'Đang hoạt động'),
+('TK012', 'sv_chau', '123456', 'VT003', N'Đang hoạt động'),
+('TK013', 'sv_nam', '123456', 'VT003', N'Đang hoạt động');
 GO
 
 INSERT INTO GiangVien (MaGV, TenGV, GioiTinh, NgaySinh, Email, SDT, HocVi, MaKhoa, MaTK) VALUES  
@@ -290,9 +293,9 @@ INSERT INTO SinhVien (MaSV, TenSV, Email, NgaySinh, GioiTinh, DiemTichLuy, MaLop
 ('SV005', N'Phạm Tuấn Hùng', 'hungpt@gmail.com', '2005-11-30', N'Nam', 0, '23OT1', N'Tạm nghỉ', 'TK008'),
 ('SV006', N'Hoàng Thanh Mai', 'maiht@gmail.com', '2005-02-28', N'Nữ', 280, '23TP1', N'Đang học', 'TK009'),
 ('SV007', N'Đặng Anh Khoa', 'khoada@gmail.com', '2005-08-14', N'Nam', 100, '23XD1', N'Đang học', 'TK010'),
-('SV008', N'Bùi Minh Tú', 'tubm@gmail.com', '2005-12-01', N'Nam', 600, '23T2', N'Đang học', NULL),
-('SV009', N'Ngô Bảo Châu', 'chaunb@gmail.com', '2005-04-18', N'Nữ', 350, '23DD1', N'Đang học', NULL),
-('SV010', N'Lý Hải Nam', 'namlh@gmail.com', '2005-07-25', N'Nam', 210, '23T3', N'Đang học', NULL);
+('SV008', N'Bùi Minh Tú', 'tubm@gmail.com', '2005-12-01', N'Nam', 600, '23T2', N'Đang học', 'TK011'),
+('SV009', N'Ngô Bảo Châu', 'chaunb@gmail.com', '2005-04-18', N'Nữ', 350, '23DD1', N'Đang học', 'TK012'),
+('SV010', N'Lý Hải Nam', 'namlh@gmail.com', '2005-07-25', N'Nam', 210, '23T3', N'Đang học', 'TK013');
 GO
 
 INSERT INTO HocKy (MaHK, TenHK, NamHoc, NgayBD, NgayKT) VALUES  

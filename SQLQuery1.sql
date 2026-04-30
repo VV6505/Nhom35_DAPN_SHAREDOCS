@@ -1,4 +1,4 @@
-﻿DROP DATABASE IF EXISTS HeThongChiaSeTaiLieu_V1;
+DROP DATABASE IF EXISTS HeThongChiaSeTaiLieu_V1;
 CREATE DATABASE HeThongChiaSeTaiLieu_V1;
 GO
 USE HeThongChiaSeTaiLieu_V1;
@@ -11,30 +11,30 @@ CREATE TABLE Khoa (
     MaKhoa CHAR(5) PRIMARY KEY,
     TenKhoa NVARCHAR(100) NOT NULL
 );
-
+go
 CREATE TABLE Nganh (
     MaNganh CHAR(5) PRIMARY KEY,
     TenNganh NVARCHAR(100) NOT NULL,
     MaKhoa CHAR(5) FOREIGN KEY REFERENCES Khoa(MaKhoa)
 );
-
+go
 CREATE TABLE Lop (
     MaLop CHAR(5) PRIMARY KEY,
     TenLop NVARCHAR(100) NOT NULL,
     MaKhoa CHAR(5) FOREIGN KEY REFERENCES Khoa(MaKhoa)
 );
-
+go
 CREATE TABLE MonHoc (
     MaMonHoc CHAR(5) PRIMARY KEY,
     TenMonHoc NVARCHAR(100) NOT NULL,
     MaNganh CHAR(5) FOREIGN KEY REFERENCES Nganh(MaNganh)
 );
-
+go
 CREATE TABLE VaiTro (
     MaVaiTro CHAR(5) PRIMARY KEY,
     TenVaiTro NVARCHAR(50) NOT NULL
 );
-
+go
 CREATE TABLE TaiKhoan (
     MaTK CHAR(5) PRIMARY KEY,
     TenTK NVARCHAR(100) NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE TaiKhoan (
     MaVaiTro CHAR(5) FOREIGN KEY REFERENCES VaiTro(MaVaiTro),
     TrangThai NVARCHAR(100)
 );
-
+go
 CREATE TABLE GiangVien (
     MaGV CHAR(5) PRIMARY KEY,
     TenGV NVARCHAR(100) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE GiangVien (
     MaKhoa CHAR(5) FOREIGN KEY REFERENCES Khoa(MaKhoa),
     MaTK CHAR(5) FOREIGN KEY REFERENCES TaiKhoan(MaTK)
 );
-
+go
 CREATE TABLE SinhVien (
     MaSV CHAR(5) PRIMARY KEY,
     TenSV NVARCHAR(100) NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE SinhVien (
     TrangThaiSV NVARCHAR(100),
     MaTK CHAR(5) FOREIGN KEY REFERENCES TaiKhoan(MaTK)
 );
-
+go
 CREATE TABLE HocKy (
     MaHK CHAR(5) PRIMARY KEY,
     TenHK NVARCHAR(50),
@@ -74,7 +74,7 @@ CREATE TABLE HocKy (
     NgayBD DATE,
     NgayKT DATE
 );
-
+go
 CREATE TABLE LichSuDiem (
     MaLS CHAR(5) PRIMARY KEY,
     MaSV CHAR(5) FOREIGN KEY REFERENCES SinhVien(MaSV),
@@ -83,13 +83,19 @@ CREATE TABLE LichSuDiem (
     NgayThayDoi DATE,
     MaHK CHAR(5) FOREIGN KEY REFERENCES HocKy(MaHK)
 );
-
+go
+CREATE TABLE DoQuy (
+    MaDQ CHAR(5) PRIMARY KEY,
+    MucDoQuy INT,
+    DiemTL INT
+);
+go
 CREATE TABLE LoaiTaiLieu (
     MaLTL CHAR(5) PRIMARY KEY,
     TenLTL NVARCHAR(100),
 	MaDQ CHAR(5) FOREIGN KEY REFERENCES DoQuy(MaDQ)
 );
-
+go
 CREATE TABLE TaiLieu (
     MaTaiLieu CHAR(5) PRIMARY KEY,
     TieuDe NVARCHAR(255) NOT NULL,
@@ -112,7 +118,7 @@ CREATE TABLE TaiLieu (
     diemYeuCau INT,
     maNguoiDuyetKhoa CHAR(5)
 );
-
+go
 CREATE TABLE ThongBao (
     MaTB CHAR(5) PRIMARY KEY,
     MaNguoiNhan CHAR(5),
@@ -123,7 +129,7 @@ CREATE TABLE ThongBao (
     NgayTao DATETIME DEFAULT GETDATE(),
     MaTL CHAR(5) FOREIGN KEY REFERENCES TaiLieu(MaTaiLieu)
 );
-
+go
 CREATE TABLE DanhGia (
     MaDG CHAR(5) PRIMARY KEY,
     MaTL CHAR(5) FOREIGN KEY REFERENCES TaiLieu(MaTaiLieu),
@@ -131,7 +137,7 @@ CREATE TABLE DanhGia (
     SoSaoDG INT CHECK (SoSaoDG BETWEEN 1 AND 5),
     ThoiGian DATETIME DEFAULT GETDATE()
 );
-
+go
 CREATE TABLE BinhLuan (
     MaBL CHAR(5) PRIMARY KEY,
     MaTL CHAR(5) FOREIGN KEY REFERENCES TaiLieu(MaTaiLieu),
@@ -139,21 +145,21 @@ CREATE TABLE BinhLuan (
     NoiDung NVARCHAR(200),
     ThoiGian DATETIME DEFAULT GETDATE()
 );
-
+go
 CREATE TABLE TLYeuThich (
     MaTLL CHAR(5) PRIMARY KEY,
     MaTL CHAR(5) FOREIGN KEY REFERENCES TaiLieu(MaTaiLieu),
     MaND CHAR(5),
     ThoiGian DATETIME DEFAULT GETDATE()
 );
-
+go
 CREATE TABLE LichSuTaiXuong (
     MaDownTL INT PRIMARY KEY IDENTITY(1,1),
     MaTaiLieu CHAR(5) FOREIGN KEY REFERENCES TaiLieu(MaTaiLieu),
     NgayTai DATETIME DEFAULT GETDATE(),
     MaND CHAR(5)
 );
-
+go
 CREATE TABLE BaoCaoViPham (
     MaBaoCao CHAR(5) PRIMARY KEY,
     MaTaiLieu CHAR(5) FOREIGN KEY REFERENCES TaiLieu(MaTaiLieu),
@@ -163,12 +169,6 @@ CREATE TABLE BaoCaoViPham (
     TrangThaiXuLy NVARCHAR(20),
     NgayBaoCao DATETIME DEFAULT GETDATE(),
     NgayDuyet DATETIME
-);
-
-CREATE TABLE DoQuy (
-    MaDQ CHAR(5) PRIMARY KEY,
-    MucDoQuy INT,
-    DiemTL INT
 );
 GO
 
@@ -302,7 +302,11 @@ INSERT INTO HocKy (MaHK, TenHK, NamHoc, NgayBD, NgayKT) VALUES
 ('HK242', N'Học kỳ 2', '2024-2025', '2025-02-10', '2025-06-30'),
 ('HK251', N'Học kỳ 1', '2025-2026', '2025-09-05', '2026-01-15');
 GO
-
+INSERT INTO DoQuy (MaDQ, MucDoQuy, DiemTL) VALUES  
+('DQ001', 1, 5), 
+('DQ002', 2, 10), 
+('DQ003', 3, 20);
+GO
 INSERT INTO LoaiTaiLieu (MaLTL, TenLTL, MaDQ) VALUES  
 ('L0001', N'Giáo trình',       'DQ003'), -- Giáo trình thường giá trị nhất (20đ)
 ('L0002', N'Đề cương ôn tập', 'DQ002'), -- Đề cương mức trung bình (10đ)
@@ -335,14 +339,24 @@ GO
 INSERT INTO DanhGia (MaDG, MaTL, MaND, SoSaoDG) VALUES  
 ('DG001', 'TL001', 'SV001', 5),
 ('DG002', 'TL002', 'SV002', 4);
-
+GO
 INSERT INTO BinhLuan (MaBL, MaTL, MaND, NoiDung) VALUES  
 ('BL001', 'TL001', 'SV001', N'Tài liệu rất hay và chi tiết ạ!'),
 ('BL002', 'TL002', 'SV003', N'Đề thi này sát với thực tế ôn tập.');
-GO
 
-INSERT INTO DoQuy (MaDQ, MucDoQuy, DiemTL) VALUES  
-('DQ001', 1, 5), 
-('DQ002', 2, 10), 
-('DQ003', 3, 20);
+GO
+-----------------------------------------------------------
+-- 5. CHÈN DỮ LIỆU BẢNG BAOCAOVIPHAM
+-----------------------------------------------------------
+INSERT INTO BaoCaoViPham (MaBaoCao, MaTaiLieu, NguoiBaoCao, LyDo, MoTaChiTiet, TrangThaiXuLy, NgayBaoCao, NgayDuyet) VALUES  
+('BC001', 'TL001', 'SV002', N'Tài liệu sai kiến thức', N'Nội dung Slide Java Swing bị nhầm lẫn ở phần xử lý sự kiện JButton.', N'Đã xử lý', '2026-04-20 08:30:00', '2026-04-21 14:00:00'),
+('BC002', 'TL002', 'SV003', N'Vi phạm bản quyền', N'Tài liệu này được sao chép nguyên văn từ giáo trình của một tác giả khác chưa xin phép.', N'Chờ xử lý', '2026-04-22 09:15:00', NULL),
+('BC003', 'TL003', 'SV005', N'File bị lỗi', N'Không thể mở được file PDF, thông báo lỗi định dạng file không hợp lệ.', N'Chờ xử lý', '2026-04-23 10:00:00', NULL),
+('BC004', 'TL004', 'SV001', N'Nội dung không phù hợp', N'Giáo trình có chứa một số hình ảnh không liên quan đến môn học Kỹ thuật Cơ khí.', N'Đã bác bỏ', '2026-04-24 11:45:00', '2026-04-25 09:00:00'),
+('BC005', 'TL005', 'SV007', N'Tài liệu rác/Spam', N'File tải lên chỉ có trang trắng, không chứa thông tin thực hành ReactJS.', N'Đã xử lý', '2026-04-25 13:20:00', '2026-04-26 10:30:00'),
+('BC006', 'TL007', 'SV006', N'Sai phân loại môn học', N'Tài liệu AI nhưng lại đang được gắn vào danh mục môn học khác.', N'Chờ xử lý', '2026-04-26 15:10:00', NULL),
+('BC007', 'TL008', 'SV004', N'Mô tả sai thực tế', N'Mô tả là thiết kế Database hoàn chỉnh nhưng file chỉ có 2 bảng đơn giản.', N'Đã xử lý', '2026-04-27 08:00:00', '2026-04-28 16:45:00'),
+('BC008', 'TL009', 'SV010', N'Ngôn ngữ không phù hợp', N'Tài liệu sử dụng ngôn từ không chuẩn mực sư phạm trong phần ghi chú Slide.', N'Chờ xử lý', '2026-04-28 14:30:00', NULL),
+('BC009', 'TL010', 'SV001', N'Tài liệu trùng lặp', N'Tài liệu này đã tồn tại trên hệ thống với mã TL002.', N'Đã bác bỏ', '2026-04-29 09:00:00', '2026-04-29 17:00:00'),
+('BC010', 'TL001', 'SV009', N'Link tải file bị hỏng', N'Khi nhấn tải xuống hệ thống báo lỗi không tìm thấy tệp tin trên máy chủ.', N'Chờ xử lý', '2026-04-30 10:20:00', NULL);
 GO

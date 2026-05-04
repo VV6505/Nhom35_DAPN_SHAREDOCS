@@ -149,5 +149,53 @@ namespace HeThong_User.Controllers
 
             return View(taiLieu);
         }
+        // GET: Document/Report/TL001
+        public IActionResult Report(string id)
+        {
+            var taiLieu = _context.TaiLieus.FirstOrDefault(t => t.MaTaiLieu == id);
+            if (taiLieu == null) return NotFound();
+
+            ViewBag.TenTaiLieu = taiLieu.TieuDe;
+            ViewBag.MaTaiLieu = id;
+            return View();
+        }
+
+        // POST: Document/Report
+        [HttpPost]
+        public async Task<IActionResult> Report(BaoCaoViPham baoCao)
+        {
+            // 1. Tự động sinh mã báo cáo (BC011, BC012...)
+            var lastBC = _context.BaoCaoViPhams.OrderByDescending(b => b.MaBaoCao).FirstOrDefault();
+            if (lastBC != null)
+            {
+                int nextId = int.Parse(lastBC.MaBaoCao.Substring(2)) + 1;
+                baoCao.MaBaoCao = "BC" + nextId.ToString("D3");
+            }
+            else
+            {
+                baoCao.MaBaoCao = "BC001";
+            }
+
+            // 2. Thiết lập thông tin mặc định
+            baoCao.NgayBaoCao = DateTime.Now;
+            baoCao.TrangThaiXuLy = "Chờ xử lý"; // Trạng thái mặc định
+            baoCao.NguoiBaoCao = "SV001"; // Tạm thời gán cứng, sau này lấy từ Session Login
+
+            _context.BaoCaoViPhams.Add(baoCao);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details", new { id = baoCao.MaTaiLieu });
+        }
+        // GET: Document/RecentReports
+        public IActionResult RecentReports()
+        {
+            // Lấy danh sách báo cáo, kèm thông tin tài liệu để hiển thị tiêu đề
+            var recentReports = _context.BaoCaoViPhams
+                .Include(b => b.MaTaiLieuNavigation)
+                .OrderByDescending(b => b.NgayBaoCao)
+                .ToList();
+
+            return View(recentReports);
+        }
     }
 }

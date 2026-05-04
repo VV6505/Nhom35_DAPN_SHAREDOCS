@@ -1,0 +1,142 @@
+﻿@model IEnumerable<HeThong_User.Models.TaiLieu>
+
+@{
+    ViewData["Title"] = "Danh mục tài liệu";
+}
+
+<!-- Ép thẻ div này hiển thị để chống lại CSS ẩn của template cũ -->
+<div class="page-section active" style="display: block !important; padding: 20px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-primary" style="margin: 0;">DANH MỤC TÀI LIỆU</h4>
+        <span class="badge bg-success fs-6">Đã tìm thấy: @Model.Count() tài liệu</span>
+    </div>
+
+    <div class="row">
+        <!-- Cột trái: Sidebar Filter -->
+        <!-- Cột trái: Sidebar Filter -->
+        <div class="col-md-3 mb-4">
+            <!-- Thêm thẻ form với method="get" để gửi dữ liệu về Controller -->
+            <form method="get" asp-controller="Document" asp-action="Index">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3 text-secondary">
+                            Bộ lọc tài liệu
+                        </h6>
+                    
+                        <label class="fw-bold mb-2 small text-muted">LOẠI TÀI LIỆU</label>
+                
+                        <!-- Dùng vòng lặp để in ra các Checkbox dựa trên Database -->
+                        @if (ViewBag.DanhSachLoai != null)
+                        {
+                            foreach (var loai in ViewBag.DanhSachLoai)
+                            {
+                                // Kiểm tra xem mục này trước đó có được người dùng tick hay không
+                                bool isChecked = ViewBag.SelectedIds.Contains(loai.MaLtl);
+
+                                <div class="form-check mb-2">
+                                    <!-- Thuộc tính name="loaiTaiLieuIds" phải khớp với tên biến trong Controller -->
+                                    <!-- Thuộc tính value sẽ gửi Mã loại (VD: L0001) về Server -->
+                                    <input class="form-check-input" type="checkbox"
+                                           name="loaiTaiLieuIds"
+                                           value="@loai.MaLtl"
+                                           id="loai_@loai.MaLtl"
+                                    @(isChecked ? "checked" : "") />
+                            
+                                    <label class="form-check-label" for="loai_@loai.MaLtl">
+                                        @loai.TenLtl
+                                    </label>
+                                </div>
+                            }
+                        }
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3 btn-sm">Áp dụng bộ lọc</button>
+                
+                        <!-- Nút Xóa bộ lọc (Chỉ hiện khi có chọn bộ lọc) -->
+                        @if (ViewBag.SelectedIds.Count > 0)
+                        {
+                            <a href="/Document/Index" class="btn btn-outline-secondary w-100 mt-2 btn-sm">Xóa bộ lọc</a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Cột phải: Document List -->
+        <div class="col-md-9">
+            <div class="row">
+                @if (!Model.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <h5 class="text-muted">Chưa có tài liệu nào được duyệt trên hệ thống.</h5>
+                    </div>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0 document-card transition-hover">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <!-- Tự động đổi màu Tag theo loại file -->
+                                        @if (item.LoaiFile == "PDF")
+                                        {
+                                            <span class="badge bg-danger">PDF</span>
+                                        }
+                                        else if (item.LoaiFile == "DOCX" || item.LoaiFile == "DOC")
+                                        {
+                                            <span class="badge bg-primary">DOCX</span>
+                                        }
+                                        else if (item.LoaiFile == "PPT" || item.LoaiFile == "PPTX")
+                                        {
+                                            <span class="badge bg-warning text-dark">PPT</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.LoaiFile</span>
+                                        }
+                                        
+                                        <span class="small text-muted" title="Lượt tải">Lượt tải: @item.LuotTai</span>
+                                    </div>
+                                    
+                                    <h6 class="card-title fw-bold text-dark mt-2 mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 40px;">
+                                        @item.TieuDe
+                                    </h6>
+                                    
+                                    <!-- Đẩy phần thông tin xuống đáy thẻ -->
+                                    <div class="mt-auto">
+                                        <p class="small text-muted mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <strong>Môn:</strong> @(item.MaMonHocNavigation?.TenMonHoc ?? "Chưa cập nhật")
+                                        </p>
+                                        <p class="small text-muted mb-3" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <strong>Loại:</strong> @(item.MaloaiTlNavigation?.TenLtl ?? "Khác")
+                                        </p>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                            <span class="text-warning fw-bold" title="Điểm yêu cầu để tải">
+                                                ⭐ @item.DiemYeuCau
+                                            </span>
+                                            <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3">Chi tiết</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS cho hiệu ứng Hover nổi thẻ tài liệu -->
+<style>
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+</style>

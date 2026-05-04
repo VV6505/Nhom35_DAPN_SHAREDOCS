@@ -128,5 +128,26 @@ namespace HeThong_User.Controllers
             ModelState.AddModelError("", "Vui lòng chọn một file để tải lên.");
             return View(taiLieu);
         }
+        // GET: Document/Details/TL001
+        public IActionResult Details(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin tài liệu kèm theo tên Môn học và Loại tài liệu
+            var taiLieu = _context.TaiLieus
+                .Include(t => t.MaMonHocNavigation)
+                .Include(t => t.MaloaiTlNavigation)
+                .FirstOrDefault(m => m.MaTaiLieu == id);
+
+            if (taiLieu == null)
+            {
+                return NotFound();
+            }
+
+            return View(taiLieu);
+        }
     }
 }

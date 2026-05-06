@@ -1,13 +1,202 @@
-﻿@{
-    ViewData["Title"] = "Bảng tin tài liệu";
+﻿@model HeThong_Admin.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+    var today = DateTime.Now.ToString("dd/M/yyyy");
 }
 
-<div class="page-head">
-    <h1>Bảng tin tài liệu</h1>
-    <p>Xem tài liệu từ cộng đồng · Thích, bình luận, tải xuống...</p>
-</div>
+<div class="content">
+    <!-- Page Header -->
+    <h1 class="page-title">Tổng quan hệ thống</h1>
+    <p class="page-subtitle">Chào mừng trở lại, Admin Quang · Hôm nay: @today</p>
 
-<div class="feed">
-    <div class="post">
+    <!-- 3 Stat Cards chính -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon blue">📄</div>
+            <div class="stat-info">
+                <div class="stat-value">@Model.TongTaiLieu.ToString("N0")</div>
+                <div class="stat-label">Tổng tài liệu</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange">📋</div>
+            <div class="stat-info">
+                <div class="stat-value">@Model.DangChoDuyet</div>
+                <div class="stat-label">Đang chờ duyệt</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">🎓</div>
+            <div class="stat-info">
+                <div class="stat-value">@Model.TongSinhVien.ToString("N0")</div>
+                <div class="stat-label">Sinh viên</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tài liệu theo khoa + Top sinh viên -->
+    <div class="two-col">
+        <!-- Biểu đồ tài liệu theo khoa -->
+        <div class="card">
+            <div class="card-header">
+                <h3>📊 Tài liệu theo khoa</h3>
+                <span class="chart-legend">
+                    <span class="legend-dot" style="background: #3b82f6;"></span> Số tài liệu
+                </span>
+            </div>
+            <div class="card-body">
+                @if (Model.TaiLieuTheoKhoas.Any())
+                {
+                    var maxCount = Model.TaiLieuTheoKhoas.Max(x => x.SoTaiLieu);
+                    <div class="bar-chart">
+                        @foreach (var khoa in Model.TaiLieuTheoKhoas)
+                        {
+                            var barHeight = maxCount > 0 ? (int)((double)khoa.SoTaiLieu / maxCount * 140) : 8;
+                            if (barHeight < 8) barHeight = 8;
+                            <div class="bar-col">
+                                <div class="bar-val">@khoa.SoTaiLieu</div>
+                                <div class="bar" style="height: @(barHeight)px; background: @khoa.MauSac;" title="@khoa.TenKhoa: @khoa.SoTaiLieu tài liệu"></div>
+                                <div class="bar-label">@(khoa.TenKhoa.Length > 12 ? khoa.TenKhoa.Substring(0, 12) + "…" : khoa.TenKhoa)</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty">Chưa có dữ liệu tài liệu theo khoa</div>
+                }
+            </div>
+        </div>
+
+        <!-- Top sinh viên tích cực -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🏆 Top sinh viên tích cực</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Họ tên</th>
+                        <th>Điểm tích lũy</th>
+                        <th>Số tài liệu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.TopSinhViens.Any())
+                    {
+                        var rank = 1;
+                        foreach (var sv in Model.TopSinhViens)
+                        {
+                            <tr>
+                                <td><span class="rank-num @(rank <= 3 ? (rank == 1 ? "gold" : rank == 2 ? "silver" : "bronze") : "")">@rank</span></td>
+                                <td><strong>@sv.TenSV</strong></td>
+                                <td>@sv.DiemTichLuy</td>
+                                <td>@sv.Lop</td>
+                            </tr>
+                            rank++;
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4" class="empty">Chưa có dữ liệu</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Báo cáo vi phạm -->
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+            <h3>🚨 Báo cáo vi phạm</h3>
+            <span class="chart-legend">
+                <span class="legend-dot" style="background: #f97316;"></span> Số báo cáo
+            </span>
+        </div>
+        <div class="card-body">
+            @if (Model.BaoCaoTheoLyDos.Any())
+            {
+                var maxBC = Model.BaoCaoTheoLyDos.Max(x => x.SoBaoCao);
+                <!-- Biểu đồ cột cam -->
+                <div class="bar-chart" style="height: 220px; margin-bottom: 24px;">
+                    @foreach (var bc in Model.BaoCaoTheoLyDos)
+                    {
+                        var barH = maxBC > 0 ? (int)((double)bc.SoBaoCao / maxBC * 160) : 8;
+                        if (barH < 8) barH = 8;
+                        <div class="bar-col">
+                            <div class="bar-val">@bc.SoBaoCao</div>
+                            <div class="bar" style="height: @(barH)px; background: linear-gradient(180deg, #fb923c, #f97316);" title="@bc.LyDo: @bc.SoBaoCao báo cáo"></div>
+                            <div class="bar-label">@bc.LyDo</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Bảng thống kê -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Lý do</th>
+                            <th>Số báo cáo</th>
+                            <th>Chờ xử lý</th>
+                            <th>Đã xử lý</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var bc in Model.BaoCaoTheoLyDos)
+                        {
+                            <tr>
+                                <td><strong style="color: var(--primary);">@bc.LyDo</strong></td>
+                                <td><strong>@bc.SoBaoCao</strong></td>
+                                <td><span style="color: #f59e0b;">@bc.ChoXuLy</span></td>
+                                <td>@bc.DaXuLy</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty">Chưa có báo cáo vi phạm nào</div>
+            }
+        </div>
+    </div>
+
+    <!-- Xuất báo cáo -->
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+            <h3>📥 Xuất báo cáo</h3>
+        </div>
+        <div class="card-body">
+            <form class="export-form" method="post" asp-action="XuatBaoCao">
+                <div class="export-row">
+                    <div class="form-group">
+                        <label>Loại báo cáo</label>
+                        <select name="LoaiBaoCao">
+                            <option value="TaiLieu">Thống kê tài liệu</option>
+                            <option value="NguoiDung">Thống kê người dùng</option>
+                            <option value="ViPham">Báo cáo vi phạm</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Định dạng file</label>
+                        <select name="DinhDang">
+                            <option value="csv">CSV (.csv)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="export-row">
+                    <div class="form-group">
+                        <label>Từ ngày</label>
+                        <input type="date" name="TuNgay" value="2026-01-01" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Đến ngày</label>
+                        <input type="date" name="DenNgay" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-action btn-export" style="width:100%; justify-content:center;">Xuất báo cáo</button>
+            </form>
+        </div>
     </div>
 </div>

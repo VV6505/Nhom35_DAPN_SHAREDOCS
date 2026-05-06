@@ -1,0 +1,602 @@
+@{
+    ViewData["Title"] = "Tài liệu cá nhân";
+}
+
+<style>
+    .documents-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .documents-header {
+        margin-bottom: 32px;
+    }
+
+    .documents-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
+
+    .documents-subtitle {
+        font-size: 16px;
+        color: var(--text-sec);
+    }
+
+    .documents-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--border-light);
+        padding-bottom: 0;
+    }
+
+    .documents-tab {
+        padding: 12px 24px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-sec);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        bottom: -2px;
+    }
+
+    .documents-tab:hover {
+        color: var(--primary);
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    .documents-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    .documents-tab-badge {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 8px;
+        background: var(--border-light);
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .documents-tab.active .documents-tab-badge {
+        background: var(--primary);
+        color: white;
+    }
+
+    .documents-content {
+        display: none;
+    }
+
+    .documents-content.active {
+        display: block;
+    }
+
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .document-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .document-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .document-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .document-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .document-icon.pdf {
+        background: #ffebee;
+    }
+
+    .document-icon.doc {
+        background: #e3f2fd;
+    }
+
+    .document-icon.ppt {
+        background: #fff3e0;
+    }
+
+    .document-icon.other {
+        background: #f3e5f5;
+    }
+
+    .document-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .document-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .document-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 12px;
+        color: var(--text-sec);
+        margin-bottom: 12px;
+    }
+
+    .document-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .document-description {
+        font-size: 13px;
+        color: var(--text-sec);
+        margin-bottom: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .document-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .document-stats {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        color: var(--text-sec);
+    }
+
+    .document-stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .document-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .document-badge.approved {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .document-badge.pending {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .document-badge.rejected {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .download-time {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--bg);
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--text-sec);
+        font-weight: 600;
+        margin-top: 8px;
+    }
+
+    .documents-empty {
+        text-align: center;
+        padding: 64px 24px;
+        color: var(--text-light);
+    }
+
+    .documents-empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .documents-empty-text {
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 48px;
+    }
+
+    .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid var(--border-light);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="documents-container">
+    <div class="documents-header">
+        <h1 class="documents-title">📂 Tài liệu cá nhân</h1>
+        <p class="documents-subtitle">Quản lý tài liệu đã đăng, đã lưu và đã tải xuống</p>
+    </div>
+
+    <div class="documents-tabs">
+        <button class="documents-tab active" onclick="switchTab('uploads')">
+            📤 Đã đăng
+            <span class="documents-tab-badge" id="uploadsCount">0</span>
+        </button>
+        <button class="documents-tab" onclick="switchTab('saved')">
+            ❤️ Đã lưu
+            <span class="documents-tab-badge" id="savedCount">0</span>
+        </button>
+        <button class="documents-tab" onclick="switchTab('downloads')">
+            📥 Đã tải xuống
+            <span class="documents-tab-badge" id="downloadsCount">0</span>
+        </button>
+    </div>
+
+    <!-- Tab: Tài liệu đã đăng -->
+    <div class="documents-content active" id="uploadsContent">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div>Đang tải tài liệu...</div>
+        </div>
+    </div>
+
+    <!-- Tab: Tài liệu đã lưu -->
+    <div class="documents-content" id="savedContent">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div>Đang tải tài liệu...</div>
+        </div>
+    </div>
+
+    <!-- Tab: Lịch sử tải xuống -->
+    <div class="documents-content" id="downloadsContent">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div>Đang tải lịch sử...</div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/auth.js"></script>
+<script>
+    let uploadsData = [];
+    let savedData = [];
+    let downloadsData = [];
+    let currentTab = 'uploads';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAllData();
+    });
+
+    async function loadAllData() {
+        await Promise.all([
+            loadUploads(),
+            loadSaved(),
+            loadDownloads()
+        ]);
+    }
+
+    async function loadUploads() {
+        try {
+            const response = await fetch('/Documents/GetMyUploads');
+            const result = await response.json();
+
+            if (result.success) {
+                uploadsData = result.taiLieu || [];
+                document.getElementById('uploadsCount').textContent = uploadsData.length;
+                displayUploads();
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải tài liệu đã đăng:', error);
+            document.getElementById('uploadsContent').innerHTML = `
+                <div class="documents-empty">
+                    <div class="documents-empty-icon">❌</div>
+                    <div class="documents-empty-text">Có lỗi xảy ra khi tải dữ liệu</div>
+                </div>
+            `;
+        }
+    }
+
+    async function loadSaved() {
+        try {
+            const response = await fetch('/Documents/GetMySaved');
+            const result = await response.json();
+
+            if (result.success) {
+                savedData = result.taiLieu || [];
+                document.getElementById('savedCount').textContent = savedData.length;
+                displaySaved();
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải tài liệu đã lưu:', error);
+            document.getElementById('savedContent').innerHTML = `
+                <div class="documents-empty">
+                    <div class="documents-empty-icon">❌</div>
+                    <div class="documents-empty-text">Có lỗi xảy ra khi tải dữ liệu</div>
+                </div>
+            `;
+        }
+    }
+
+    async function loadDownloads() {
+        try {
+            const response = await fetch('/Documents/GetMyDownloads');
+            const result = await response.json();
+
+            if (result.success) {
+                downloadsData = result.lichSu || [];
+                document.getElementById('downloadsCount').textContent = downloadsData.length;
+                displayDownloads();
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải lịch sử tải xuống:', error);
+            document.getElementById('downloadsContent').innerHTML = `
+                <div class="documents-empty">
+                    <div class="documents-empty-icon">❌</div>
+                    <div class="documents-empty-text">Có lỗi xảy ra khi tải dữ liệu</div>
+                </div>
+            `;
+        }
+    }
+
+    function displayUploads() {
+        const container = document.getElementById('uploadsContent');
+
+        if (uploadsData.length === 0) {
+            container.innerHTML = `
+                <div class="documents-empty">
+                    <div class="documents-empty-icon">📭</div>
+                    <div class="documents-empty-text">Bạn chưa đăng tài liệu nào</div>
+                </div>
+            `;
+            return;
+        }
+
+        const html = `
+            <div class="documents-grid">
+                ${uploadsData.map(doc => createDocumentCard(doc, 'upload')).join('')}
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function displaySaved() {
+        const container = document.getElementById('savedContent');
+
+        if (savedData.length === 0) {
+            container.innerHTML = `
+                <div class="documents-empty">
+                    <div class="documents-empty-icon">💔</div>
+                    <div class="documents-empty-text">Bạn chưa lưu tài liệu nào</div>
+                </div>
+            `;
+            return;
+        }
+
+        const html = `
+            <div class="documents-grid">
+                ${savedData.map(item => createDocumentCard(item.taiLieu, 'saved', item.thoiGianLuu)).join('')}
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function displayDownloads() {
+        const container = document.getElementById('downloadsContent');
+
+        if (downloadsData.length === 0) {
+            container.innerHTML = `
+                <div class="documents-empty">
+                    <div class="documents-empty-icon">📥</div>
+                    <div class="documents-empty-text">Bạn chưa tải xuống tài liệu nào</div>
+                </div>
+            `;
+            return;
+        }
+
+        const html = `
+            <div class="documents-grid">
+                ${downloadsData.map(item => createDocumentCard(item.taiLieu, 'download', item.ngayTai)).join('')}
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function createDocumentCard(doc, type, extraTime) {
+        if (!doc) return '';
+
+        const fileIcon = getFileIcon(doc.loaiFile);
+        const fileIconClass = getFileIconClass(doc.loaiFile);
+        const fileSize = formatFileSize(doc.kichThuoc);
+        const uploadDate = doc.ngayDang ? new Date(doc.ngayDang).toLocaleDateString('vi-VN') : 'N/A';
+        
+        let statusBadge = '';
+        if (type === 'upload') {
+            const status = doc.trangThaiDuyet || 'Chờ duyệt';
+            const badgeClass = status === 'Đã duyệt' ? 'approved' : status === 'Từ chối' ? 'rejected' : 'pending';
+            statusBadge = `<span class="document-badge ${badgeClass}">${status}</span>`;
+        }
+
+        let timeInfo = '';
+        if (type === 'saved' && extraTime) {
+            const savedTime = new Date(extraTime);
+            timeInfo = `
+                <div class="download-time">
+                    <span>❤️</span>
+                    <span>Đã lưu: ${savedTime.toLocaleDateString('vi-VN')} ${savedTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+            `;
+        } else if (type === 'download' && extraTime) {
+            const downloadTime = new Date(extraTime);
+            timeInfo = `
+                <div class="download-time">
+                    <span>📥</span>
+                    <span>Tải xuống: ${downloadTime.toLocaleDateString('vi-VN')} ${downloadTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="document-card" onclick="viewDocument('${doc.maTaiLieu}')">
+                <div class="document-card-header">
+                    <div class="document-icon ${fileIconClass}">${fileIcon}</div>
+                    <div class="document-info">
+                        <div class="document-title">${doc.tieuDe || 'Không có tiêu đề'}</div>
+                    </div>
+                </div>
+                
+                <div class="document-meta">
+                    ${doc.tenMonHoc ? `
+                        <div class="document-meta-item">
+                            <span>📚</span>
+                            <span>${doc.tenMonHoc}</span>
+                        </div>
+                    ` : ''}
+                    ${doc.loaiTaiLieu ? `
+                        <div class="document-meta-item">
+                            <span>📑</span>
+                            <span>${doc.loaiTaiLieu}</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                ${doc.moTa ? `<div class="document-description">${doc.moTa}</div>` : ''}
+
+                <div class="document-footer">
+                    <div class="document-stats">
+                        <div class="document-stat">
+                            <span>📥</span>
+                            <span>${doc.luotTai || 0}</span>
+                        </div>
+                        <div class="document-stat">
+                            <span>📦</span>
+                            <span>${fileSize}</span>
+                        </div>
+                        ${doc.diemYeuCau ? `
+                            <div class="document-stat">
+                                <span>⭐</span>
+                                <span>${doc.diemYeuCau}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    ${statusBadge}
+                </div>
+
+                ${timeInfo}
+            </div>
+        `;
+    }
+
+    function getFileIcon(loaiFile) {
+        if (!loaiFile) return '📄';
+        const ext = loaiFile.toLowerCase();
+        if (ext.includes('pdf')) return '📕';
+        if (ext.includes('doc') || ext.includes('docx')) return '📘';
+        if (ext.includes('ppt') || ext.includes('pptx')) return '📙';
+        if (ext.includes('xls') || ext.includes('xlsx')) return '📗';
+        return '📄';
+    }
+
+    function getFileIconClass(loaiFile) {
+        if (!loaiFile) return 'other';
+        const ext = loaiFile.toLowerCase();
+        if (ext.includes('pdf')) return 'pdf';
+        if (ext.includes('doc') || ext.includes('docx')) return 'doc';
+        if (ext.includes('ppt') || ext.includes('pptx')) return 'ppt';
+        return 'other';
+    }
+
+    function formatFileSize(bytes) {
+        if (!bytes) return '0 KB';
+        const kb = bytes / 1024;
+        if (kb < 1024) return kb.toFixed(1) + ' KB';
+        const mb = kb / 1024;
+        return mb.toFixed(1) + ' MB';
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+
+        // Update tab buttons
+        document.querySelectorAll('.documents-tab').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.closest('.documents-tab').classList.add('active');
+
+        // Update content
+        document.querySelectorAll('.documents-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(tab + 'Content').classList.add('active');
+    }
+
+    function viewDocument(maTaiLieu) {
+        // TODO: Navigate to document detail page
+        console.log('View document:', maTaiLieu);
+        alert('Chức năng xem chi tiết tài liệu sẽ được phát triển sau');
+    }
+</script>

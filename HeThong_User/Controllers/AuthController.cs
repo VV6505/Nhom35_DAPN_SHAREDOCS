@@ -110,7 +110,7 @@ namespace HeThong_User.Controllers
                 HttpContext.Session.SetString("TenVaiTro", taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "");
 
                 // Tạo object để trả về cho client (lưu vào localStorage)
-                var userInfo = new
+                object userInfo = new
                 {
                     MaTaiKhoan = taiKhoan.MaTk,
                     TenTaiKhoan = taiKhoan.TenTk,
@@ -142,7 +142,11 @@ namespace HeThong_User.Controllers
                         MaNguoiDung = sinhVien.MaSv,
                         TenNguoiDung = sinhVien.TenSv,
                         Email = sinhVien.Email ?? "",
-                        DiemTichLuy = sinhVien.DiemTichLuy ?? 0
+                        NgaySinh = sinhVien.NgaySinh?.ToString("dd/MM/yyyy") ?? "",
+                        GioiTinh = sinhVien.GioiTinh ?? "",
+                        DiemTichLuy = sinhVien.DiemTichLuy ?? 0,
+                        MaLop = sinhVien.MaLop ?? "",
+                        TrangThaiSv = sinhVien.TrangThaiSv ?? ""
                     };
                 }
                 else if (taiKhoan.GiangViens.Any())
@@ -163,7 +167,11 @@ namespace HeThong_User.Controllers
                         MaNguoiDung = giangVien.MaGv,
                         TenNguoiDung = giangVien.TenGv,
                         Email = giangVien.Email ?? "",
-                        DiemTichLuy = 0
+                        NgaySinh = giangVien.NgaySinh?.ToString("dd/MM/yyyy") ?? "",
+                        GioiTinh = giangVien.GioiTinh ?? "",
+                        Sdt = giangVien.Sdt ?? "",
+                        DiemTichLuy = 0,
+                        MaKhoa = giangVien.MaKhoa ?? ""
                     };
                 }
                 else

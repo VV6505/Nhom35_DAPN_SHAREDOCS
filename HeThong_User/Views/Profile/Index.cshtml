@@ -404,11 +404,6 @@
                     <span class="profile-info-label">Khoa</span>
                     <span class="profile-info-value" id="infoKhoa">-</span>
                 </div>
-
-                <div class="profile-info-row">
-                    <span class="profile-info-label">Trạng thái</span>
-                    <span class="profile-info-value" id="infoStatus">-</span>
-                </div>
             </div>
         </div>
     </div>
@@ -480,16 +475,17 @@
         }
 
         // Thông tin tài khoản
-        document.getElementById('infoUsername').textContent = data.tenTaiKhoan || '-';
-        document.getElementById('infoUserId').textContent = data.maNguoiDung || '-';
+        document.getElementById('infoUsername').textContent = data.tenTaiKhoan || data.TenTaiKhoan || '-';
+        document.getElementById('infoUserId').textContent = data.maNguoiDung || data.MaNguoiDung || '-';
         
-        if (data.loaiNguoiDung === 'SinhVien') {
+        const loaiNguoiDung = data.loaiNguoiDung || data.LoaiNguoiDung || '';
+        
+        if (loaiNguoiDung === 'SinhVien' || loaiNguoiDung === 'sinhvien') {
             document.getElementById('infoLopRow').style.display = 'flex';
-            document.getElementById('infoLop').textContent = data.maLop || '-';
-            document.getElementById('infoStatus').textContent = data.trangThai || '-';
-        } else if (data.loaiNguoiDung === 'GiangVien') {
+            document.getElementById('infoLop').textContent = data.maLop || data.MaLop || '-';
+        } else if (loaiNguoiDung === 'GiangVien' || loaiNguoiDung === 'giangvien') {
             document.getElementById('infoKhoaRow').style.display = 'flex';
-            document.getElementById('infoKhoa').textContent = data.maKhoa || '-';
+            document.getElementById('infoKhoa').textContent = data.maKhoa || data.MaKhoa || '-';
         }
 
         // Lưu dữ liệu gốc

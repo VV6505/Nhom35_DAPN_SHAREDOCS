@@ -1,0 +1,123 @@
+    @model List<HeThong_User.Models.Khoa>
+@{
+    ViewData["Title"] = "Cập nhật danh mục tài liệu";
+}
+
+<div class="content">
+    <h1 class="page-title">Cập nhật danh mục tài liệu</h1>
+    <p class="page-subtitle">Quản lý cây danh mục Khoa → Ngành → Môn học</p>
+
+    <div class="two-col">
+        <!-- Cây danh mục -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Cây danh mục</h3>
+                <button class="btn btn-primary" onclick="document.getElementById('addModal').style.display='flex'">+
+                    Thêm</button>
+            </div>
+            <div class="card-body">
+                @if (Model.Any())
+                {
+                    foreach (var khoa in Model)
+                    {
+                        <div class="tree-item tree-khoa">
+                            <span class="tree-icon">📕</span>
+                            @khoa.TenKhoa
+                            <form method="post" asp-action="XoaDanhMuc" style="display:inline; margin-left:auto;">
+                                <input type="hidden" name="type" value="khoa" />
+                                <input type="hidden" name="id" value="@khoa.MaKhoa" />
+                                <button type="submit" class="tree-delete" title="Xóa"
+                                    onclick="return confirm('Xóa khoa này?')">×</button>
+                            </form>
+                        </div>
+                        @foreach (var nganh in khoa.Nganhs)
+                        {
+                            <div class="tree-item tree-nganh">
+                                <span class="tree-icon">📂</span>
+                                @nganh.TenNganh
+                                <form method="post" asp-action="XoaDanhMuc" style="display:inline; margin-left:auto;">
+                                    <input type="hidden" name="type" value="nganh" />
+                                    <input type="hidden" name="id" value="@nganh.MaNganh" />
+                                    <button type="submit" class="tree-delete" title="Xóa"
+                                        onclick="return confirm('Xóa ngành này?')">×</button>
+                                </form>
+                            </div>
+                            @foreach (var mon in nganh.MonHocs)
+                            {
+                                <div class="tree-item tree-mon">
+                                    <span class="tree-icon">📄</span>
+                                    <a href="#">@mon.TenMonHoc</a>
+                                    <form method="post" asp-action="XoaDanhMuc" style="display:inline; margin-left:auto;">
+                                        <input type="hidden" name="type" value="monhoc" />
+                                        <input type="hidden" name="id" value="@mon.MaMonHoc" />
+                                        <button type="submit" class="tree-delete" title="Xóa"
+                                            onclick="return confirm('Xóa môn học này?')">×</button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="empty">Chưa có danh mục nào</div>
+                }
+            </div>
+        </div>
+
+        <!-- Form thêm danh mục -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Thêm danh mục mới</h3>
+            </div>
+            <div class="card-body">
+                <!-- Thêm Ngành -->
+                <h4 style="font-size:14px; font-weight:600; margin-bottom:12px;">Thêm ngành</h4>
+                <form method="post" asp-action="ThemNganh">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label>Tên ngành</label>
+                        <input type="text" name="tenNganh" required placeholder="Nhập tên ngành..." />
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label>Thuộc khoa</label>
+                        <select name="maKhoa" required>
+                            <option value="">Chọn khoa</option>
+                            @foreach (var khoa in Model)
+                            {
+                                <option value="@khoa.MaKhoa">@khoa.TenKhoa</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 8px; width: 100%;">+ Thêm
+                        ngành</button>
+                </form>
+
+                <hr style="margin: 20px 0; border-color: #f0f0f0;" />
+
+                <!-- Thêm Môn học -->
+                <h4 style="font-size:14px; font-weight:600; margin-bottom:12px;">Thêm môn học</h4>
+                <form method="post" asp-action="ThemMonHoc">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label>Tên môn học</label>
+                        <input type="text" name="tenMonHoc" required placeholder="Nhập tên môn học..." />
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label>Thuộc ngành</label>
+                        <select name="maNganh" required>
+                            <option value="">Chọn ngành</option>
+                            @foreach (var khoa in Model)
+                            {
+                                foreach (var nganh in khoa.Nganhs)
+                                {
+                                    <option value="@nganh.MaNganh">@nganh.TenNganh (@khoa.TenKhoa)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 8px; width: 100%;">+ Thêm môn
+                        học</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

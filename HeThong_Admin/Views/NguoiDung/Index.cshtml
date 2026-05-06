@@ -1,0 +1,120 @@
+@model List<HeThong_User.Models.TaiKhoan>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    var search = ViewBag.Search as string ?? "";
+    var vaitro = ViewBag.VaiTro as string ?? "all";
+    var trangthai = ViewBag.TrangThai as string ?? "all";
+    var vaiTros = ViewBag.VaiTros as List<HeThong_User.Models.VaiTro>;
+}
+
+<div class="content">
+    <h1 class="page-title">Quản lý người dùng</h1>
+    <p class="page-subtitle">Xem, phân quyền và quản lý tài khoản trong hệ thống</p>
+
+    <div class="card">
+        <!-- Bộ lọc -->
+        <div class="action-bar">
+            <form method="get" asp-action="Index" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; width:100%;">
+                <input type="text" name="search" value="@search" placeholder="🔍 Tìm theo tên, email..." style="flex:1; min-width:200px; max-width:280px;" />
+                <select name="vaitro">
+                    <option value="all" selected="@(vaitro == "all")">Tất cả vai trò</option>
+                    @if (vaiTros != null)
+                    {
+                        foreach (var vt in vaiTros)
+                        {
+                                    <option value="@vt.MaVaiTro" selected="@(vaitro == vt.MaVaiTro)">@vt.TenVaiTro</option>
+                        }
+                    }
+                </select>
+                <select name="trangthai">
+                    <option value="all" selected="@(trangthai == "all")">Tất cả trạng thái</option>
+                    <option value="Đang hoạt động" selected="@(trangthai == "Đang hoạt động")">Đang hoạt động</option>
+                    <option value="Tạm khóa" selected="@(trangthai == "Tạm khóa")">Tạm khóa</option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-action">🔍 Tìm kiếm</button>
+                <a href="@Url.Action("Index")" class="btn btn-outline btn-action">↺ Đặt lại</a>
+            </form>
+        </div>
+
+        <!-- Bảng danh sách -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Họ tên</th>
+                    <th>Mã số</th>
+                    <th>Vai trò</th>
+                    <th>Điểm</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var tk in Model)
+                    {
+                        var tenHienThi = "";
+                        var maSo = tk.MaTk;
+                        var diem = "—";
+                        var vaiTroText = tk.MaVaiTroNavigation?.TenVaiTro ?? "—";
+
+                        var sv = tk.SinhViens.FirstOrDefault();
+                        var gv = tk.GiangViens.FirstOrDefault();
+
+                        if (sv != null)
+                        {
+                            tenHienThi = sv.TenSv;
+                            maSo = sv.MaSv;
+                            diem = (sv.DiemTichLuy ?? 0).ToString();
+                        }
+                        else if (gv != null)
+                        {
+                            tenHienThi = gv.TenGv;
+                            maSo = gv.MaGv;
+                        }
+                        else
+                        {
+                            tenHienThi = tk.TenTk;
+                        }
+
+                        var isActive = tk.TrangThai == "Đang hoạt động";
+                                <tr>
+                                    <td><strong>@tenHienThi</strong></td>
+                                    <td>@maSo</td>
+                                    <td>@vaiTroText</td>
+                                    <td>@diem</td>
+                                    <td>
+                                        <span class="status-dot @(isActive ? "active" : "locked")"></span>
+                                @(isActive ? "Hoạt động" : "Tạm khóa")
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                    @if (isActive)
+                                    {
+                                                    <form method="post" asp-action="KhoaTaiKhoan" asp-route-id="@tk.MaTk" style="display:inline;">
+                                                        <button type="submit" class="btn btn-danger">Khóa</button>
+                                                    </form>
+                                    }
+                                    else
+                                    {
+                                                    <form method="post" asp-action="MoKhoaTaiKhoan" asp-route-id="@tk.MaTk" style="display:inline;">
+                                                        <button type="submit" class="btn btn-success">Mở khóa</button>
+                                                    </form>
+                                    }
+                                            <form method="post" asp-action="XoaTaiKhoan" asp-route-id="@tk.MaTk" style="display:inline;"
+                                                  onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này?');">
+                                                <button type="submit" class="btn btn-outline">Xóa</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                    }
+                }
+                else
+                {
+                        <tr><td colspan="7" class="empty">Không tìm thấy người dùng nào</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

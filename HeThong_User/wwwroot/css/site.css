@@ -80,29 +80,21 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid var(--border-light);
-    border-radius: 999px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
     background: #fff;
     box-shadow: var(--shadow);
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--primary);
     cursor: default;
     user-select: none;
 }
 
-    .points-chip .points-ico {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--accent-light);
-        color: var(--accent);
-        font-size: 14px;
+    .points-chip svg {
         flex-shrink: 0;
+        stroke: var(--primary);
     }
 
 /* Bell */
@@ -333,28 +325,36 @@ body {
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
+    gap: 12px;
+    padding: 12px 16px;
     cursor: pointer;
     color: var(--text-sec);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     transition: all 0.15s;
     text-decoration: none;
-    border-left: 3px solid transparent;
-    margin-bottom: 1px;
+    border-radius: 8px;
+    margin-bottom: 4px;
 }
 
+    .nav-item svg {
+        flex-shrink: 0;
+        stroke-width: 2;
+    }
+
     .nav-item:hover {
-        background: #fafafa;
+        background: #f5f5f5;
         color: var(--text);
     }
 
     .nav-item.active {
         color: var(--primary);
         background: var(--primary-light);
-        border-left-color: var(--primary);
         font-weight: 600;
+    }
+
+    .nav-item.active svg {
+        stroke: var(--primary);
     }
 
 .nav-icon {
@@ -1335,4 +1335,207 @@ tr:hover td {
     border-radius: 3px;
 }
 
-</style >
+/* ============================================ */
+/* USER DROPDOWN MENU */
+/* ============================================ */
+
+.user-avatar {
+    position: relative;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.user-avatar:hover {
+    opacity: 0.8;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 320px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.user-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.user-dropdown-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-bg) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 auto 12px;
+    box-shadow: 0 4px 12px rgba(0, 77, 115, 0.2);
+}
+
+.user-dropdown-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.user-dropdown-role {
+    font-size: 13px;
+    color: var(--text-sec);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.user-dropdown-email {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
+}
+
+.user-dropdown-body {
+    padding: 12px 0;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.2s;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+}
+
+    .user-dropdown-item svg {
+        flex-shrink: 0;
+        stroke: var(--text-sec);
+    }
+
+    .user-dropdown-item:hover {
+        background: var(--bg);
+    }
+
+    .user-dropdown-item:hover svg {
+        stroke: var(--primary);
+    }
+
+.user-dropdown-item-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.user-dropdown-item-text {
+    flex: 1;
+}
+
+.user-dropdown-item-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.user-dropdown-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 8px 0;
+}
+
+.user-dropdown-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-light);
+}
+
+.user-dropdown-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: #ffebee;
+    color: #c62828;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .user-dropdown-logout svg {
+        flex-shrink: 0;
+        stroke: #c62828;
+    }
+
+    .user-dropdown-logout:hover {
+        background: #c62828;
+        color: white;
+    }
+
+    .user-dropdown-logout:hover svg {
+        stroke: white;
+    }
+
+/* Animation cho avatar khi load */
+@keyframes avatarPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.avatar.loaded {
+    animation: avatarPulse 0.5s ease;
+}
+
+/* Loading state */
+.user-name.loading::after {
+    content: '...';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: '.';
+    }
+    40% {
+        content: '..';
+    }
+    60%, 100% {
+        content: '...';
+    }
+}

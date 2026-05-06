@@ -1,0 +1,623 @@
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #004d73 0%, #0077b6 100%);
+        border-radius: 16px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(0, 77, 115, 0.2);
+    }
+
+    .profile-header-content {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .profile-avatar-large {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: white;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: 700;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
+    }
+
+    .profile-header-info h1 {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+    }
+
+    .profile-header-meta {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .profile-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+
+    @@media (max-width: 968px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .profile-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--border-light);
+    }
+
+    .profile-card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .profile-form-group {
+        margin-bottom: 20px;
+    }
+
+    .profile-form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-sec);
+        margin-bottom: 8px;
+    }
+
+    .profile-form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .profile-form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0, 77, 115, 0.1);
+    }
+
+    .profile-form-input:disabled {
+        background: var(--bg);
+        color: var(--text-light);
+        cursor: not-allowed;
+    }
+
+    .profile-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .profile-info-row:last-child {
+        border-bottom: none;
+    }
+
+    .profile-info-label {
+        font-size: 14px;
+        color: var(--text-sec);
+        font-weight: 500;
+    }
+
+    .profile-info-value {
+        font-size: 14px;
+        color: var(--text);
+        font-weight: 600;
+    }
+
+    .profile-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .profile-btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .profile-btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 77, 115, 0.3);
+    }
+
+    .profile-btn-secondary {
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    .profile-btn-secondary:hover {
+        background: var(--border);
+    }
+
+    .profile-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: none;
+    }
+
+    .alert-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+    }
+
+    .alert-error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+    }
+
+    .alert.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 4px;
+        height: 20px;
+    }
+
+    @@keyframes loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="profile-header-content">
+            <div class="profile-avatar-large" id="profileAvatarLarge">
+                <div class="loading-skeleton" style="width: 60px; height: 60px; border-radius: 50%;"></div>
+            </div>
+            <div class="profile-header-info">
+                <h1 id="profileName">Đang tải...</h1>
+                <div class="profile-header-meta">
+                    <div class="profile-meta-item">
+                        <span id="profileRoleIcon">👤</span>
+                        <span id="profileRole">Đang tải...</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span>📧</span>
+                        <span id="profileEmailHeader">Đang tải...</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span>⭐</span>
+                        <span id="profilePointsHeader">0 điểm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="profile-grid">
+        <!-- Left Column -->
+        <div>
+            <!-- Thông tin cá nhân -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span>👤</span>
+                        <span>Thông tin cá nhân</span>
+                    </h2>
+                    <button class="profile-btn profile-btn-secondary" onclick="toggleEditMode()">
+                        <span id="editBtnIcon">✏️</span>
+                        <span id="editBtnText">Chỉnh sửa</span>
+                    </button>
+                </div>
+
+                <div id="alertContainer"></div>
+
+                <form id="profileForm">
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Họ và tên</label>
+                        <input type="text" class="profile-form-input" id="inputName" disabled>
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Email</label>
+                        <input type="email" class="profile-form-input" id="inputEmail" disabled>
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Ngày sinh</label>
+                        <input type="date" class="profile-form-input" id="inputNgaySinh" disabled>
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Giới tính</label>
+                        <select class="profile-form-input" id="inputGioiTinh" disabled>
+                            <option value="">Chọn giới tính</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+
+                    <div class="profile-form-group" id="sdtGroup" style="display: none;">
+                        <label class="profile-form-label">Số điện thoại</label>
+                        <input type="tel" class="profile-form-input" id="inputSdt" disabled>
+                    </div>
+
+                    <div id="editActions" style="display: none; margin-top: 24px;">
+                        <button type="button" class="profile-btn profile-btn-primary" onclick="saveProfile()">
+                            <span>💾</span>
+                            <span>Lưu thay đổi</span>
+                        </button>
+                        <button type="button" class="profile-btn profile-btn-secondary" onclick="cancelEdit()">
+                            <span>❌</span>
+                            <span>Hủy</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Đổi mật khẩu -->
+            <div class="profile-card" style="margin-top: 24px;">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span>🔒</span>
+                        <span>Đổi mật khẩu</span>
+                    </h2>
+                </div>
+
+                <div id="passwordAlertContainer"></div>
+
+                <form id="passwordForm">
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Mật khẩu cũ</label>
+                        <input type="password" class="profile-form-input" id="inputOldPassword" required>
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Mật khẩu mới</label>
+                        <input type="password" class="profile-form-input" id="inputNewPassword" required minlength="6">
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="profile-form-input" id="inputConfirmPassword" required>
+                    </div>
+
+                    <button type="submit" class="profile-btn profile-btn-primary">
+                        <span>🔑</span>
+                        <span>Đổi mật khẩu</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+            <!-- Thống kê -->
+            <!-- Thông tin tài khoản -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span>🔐</span>
+                        <span>Thông tin tài khoản</span>
+                    </h2>
+                </div>
+
+                <div class="profile-info-row">
+                    <span class="profile-info-label">Tên đăng nhập</span>
+                    <span class="profile-info-value" id="infoUsername">-</span>
+                </div>
+
+                <div class="profile-info-row">
+                    <span class="profile-info-label">Mã người dùng</span>
+                    <span class="profile-info-value" id="infoUserId">-</span>
+                </div>
+
+                <div class="profile-info-row" id="infoLopRow" style="display: none;">
+                    <span class="profile-info-label">Lớp</span>
+                    <span class="profile-info-value" id="infoLop">-</span>
+                </div>
+
+                <div class="profile-info-row" id="infoKhoaRow" style="display: none;">
+                    <span class="profile-info-label">Khoa</span>
+                    <span class="profile-info-value" id="infoKhoa">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/auth.js"></script>
+<script>
+    let isEditMode = false;
+    let originalData = {};
+
+    // Load dữ liệu khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProfileData();
+    });
+
+    function loadProfileData() {
+        console.log('🔄 Đang tải thông tin profile...');
+
+        // Lấy dữ liệu từ localStorage
+        if (!AuthManager.isLoggedIn()) {
+            window.location.href = '/Auth/Login';
+            return;
+        }
+
+        const userInfo = AuthManager.getUserInfo();
+        console.log('👤 User info từ localStorage:', userInfo);
+
+        // Fill dữ liệu vào form
+        fillProfileData(userInfo);
+    }
+
+    function fillProfileData(data) {
+        // Avatar
+        const words = (data.tenNguoiDung || '').trim().split(' ');
+        let initials = '';
+        if (words.length >= 2) {
+            initials = words[0][0] + words[words.length - 1][0];
+        } else if (words.length === 1) {
+            initials = words[0].substring(0, 2);
+        }
+        document.getElementById('profileAvatarLarge').textContent = initials.toUpperCase();
+
+        // Header
+        document.getElementById('profileName').textContent = data.tenNguoiDung || 'Người dùng';
+        
+        const roleIcon = data.loaiNguoiDung === 'SinhVien' ? '🎓' : '👨‍🏫';
+        document.getElementById('profileRoleIcon').textContent = roleIcon;
+        document.getElementById('profileRole').textContent = data.tenVaiTro || data.loaiNguoiDung;
+        document.getElementById('profileEmailHeader').textContent = data.email || 'Chưa có email';
+        document.getElementById('profilePointsHeader').textContent = `${data.diemTichLuy || 0} điểm`;
+
+        // Form
+        document.getElementById('inputName').value = data.tenNguoiDung || '';
+        document.getElementById('inputEmail').value = data.email || '';
+        document.getElementById('inputGioiTinh').value = data.gioiTinh || '';
+
+        // Ngày sinh (convert từ DD/MM/YYYY sang YYYY-MM-DD)
+        if (data.ngaySinh) {
+            const parts = data.ngaySinh.split('/');
+            if (parts.length === 3) {
+                document.getElementById('inputNgaySinh').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        }
+
+        // Số điện thoại (chỉ cho giảng viên)
+        if (data.loaiNguoiDung === 'GiangVien') {
+            document.getElementById('sdtGroup').style.display = 'block';
+            document.getElementById('inputSdt').value = data.sdt || '';
+        }
+
+        // Thông tin tài khoản
+        document.getElementById('infoUsername').textContent = data.tenTaiKhoan || data.TenTaiKhoan || '-';
+        document.getElementById('infoUserId').textContent = data.maNguoiDung || data.MaNguoiDung || '-';
+        
+        const loaiNguoiDung = data.loaiNguoiDung || data.LoaiNguoiDung || '';
+        
+        if (loaiNguoiDung === 'SinhVien' || loaiNguoiDung === 'sinhvien') {
+            document.getElementById('infoLopRow').style.display = 'flex';
+            document.getElementById('infoLop').textContent = data.maLop || data.MaLop || '-';
+        } else if (loaiNguoiDung === 'GiangVien' || loaiNguoiDung === 'giangvien') {
+            document.getElementById('infoKhoaRow').style.display = 'flex';
+            document.getElementById('infoKhoa').textContent = data.maKhoa || data.MaKhoa || '-';
+        }
+
+        // Lưu dữ liệu gốc
+        originalData = { ...data };
+
+        console.log('✅ Đã fill dữ liệu profile');
+    }
+
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+
+        const inputs = ['inputEmail', 'inputNgaySinh', 'inputGioiTinh'];
+        if (document.getElementById('sdtGroup').style.display !== 'none') {
+            inputs.push('inputSdt');
+        }
+
+        inputs.forEach(id => {
+            document.getElementById(id).disabled = !isEditMode;
+        });
+
+        document.getElementById('editActions').style.display = isEditMode ? 'block' : 'none';
+        document.getElementById('editBtnIcon').textContent = isEditMode ? '❌' : '✏️';
+        document.getElementById('editBtnText').textContent = isEditMode ? 'Hủy' : 'Chỉnh sửa';
+
+        if (!isEditMode) {
+            // Reset về dữ liệu gốc
+            fillProfileData(originalData);
+        }
+    }
+
+    function cancelEdit() {
+        toggleEditMode();
+    }
+
+    async function saveProfile() {
+        try {
+            const data = {
+                email: document.getElementById('inputEmail').value,
+                gioiTinh: document.getElementById('inputGioiTinh').value,
+                ngaySinh: document.getElementById('inputNgaySinh').value ? 
+                    new Date(document.getElementById('inputNgaySinh').value).toISOString().split('T')[0] : null,
+                sdt: document.getElementById('inputSdt').value
+            };
+
+            const response = await fetch('/Profile/UpdateProfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('alertContainer', 'success', result.message);
+                
+                // Cập nhật localStorage
+                const userInfo = AuthManager.getUserInfo();
+                userInfo.email = data.email;
+                userInfo.gioiTinh = data.gioiTinh;
+                AuthManager.saveUserInfo(userInfo);
+                
+                // Cập nhật header
+                if (window.updateHeaderFromLocalStorage) {
+                    window.updateHeaderFromLocalStorage();
+                }
+                
+                toggleEditMode();
+            } else {
+                showAlert('alertContainer', 'error', result.message);
+            }
+        } catch (error) {
+            console.error('Lỗi:', error);
+            showAlert('alertContainer', 'error', 'Có lỗi xảy ra khi lưu thông tin');
+        }
+    }
+
+    // Xử lý đổi mật khẩu
+    document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const oldPassword = document.getElementById('inputOldPassword').value;
+        const newPassword = document.getElementById('inputNewPassword').value;
+        const confirmPassword = document.getElementById('inputConfirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            showAlert('passwordAlertContainer', 'error', 'Mật khẩu xác nhận không khớp!');
+            return;
+        }
+
+        try {
+            const response = await fetch('/Profile/ChangePassword', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    oldPassword,
+                    newPassword,
+                    confirmPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('passwordAlertContainer', 'success', result.message);
+                document.getElementById('passwordForm').reset();
+            } else {
+                showAlert('passwordAlertContainer', 'error', result.message);
+            }
+        } catch (error) {
+            console.error('Lỗi:', error);
+            showAlert('passwordAlertContainer', 'error', 'Có lỗi xảy ra khi đổi mật khẩu');
+        }
+    });
+
+    function showAlert(containerId, type, message) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = `
+            <div class="alert alert-${type} show">
+                ${type === 'success' ? '✓' : '✗'} ${message}
+            </div>
+        `;
+
+        setTimeout(() => {
+            const alert = container.querySelector('.alert');
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => container.innerHTML = '', 300);
+            }
+        }, 5000);
+    }
+</script>

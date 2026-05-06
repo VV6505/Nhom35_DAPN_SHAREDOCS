@@ -80,10 +80,47 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/auth.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @* Copy toàn bộ thẻ <script> từ code của bạn vào đây *@
     <script>
+        // Cập nhật thông tin người dùng từ localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            if (AuthManager.isLoggedIn()) {
+                const userInfo = AuthManager.getUserInfo();
+                
+                // Cập nhật tên người dùng
+                const userNameElement = document.querySelector('.user-name');
+                if (userNameElement && userInfo.TenNguoiDung) {
+                    userNameElement.textContent = userInfo.TenNguoiDung;
+                }
+                
+                // Cập nhật avatar (lấy chữ cái đầu)
+                const avatarElement = document.querySelector('.avatar');
+                if (avatarElement && userInfo.TenNguoiDung) {
+                    const initials = userInfo.TenNguoiDung
+                        .split(' ')
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase()
+                        .substring(0, 2);
+                    avatarElement.textContent = initials;
+                }
+                
+                // Cập nhật điểm tích lũy
+                const pointsElement = document.getElementById('headerPoints');
+                if (pointsElement && userInfo.DiemTichLuy !== undefined) {
+                    pointsElement.textContent = userInfo.DiemTichLuy;
+                }
+                
+                console.log('✅ Đã cập nhật thông tin người dùng từ localStorage');
+            } else {
+                console.log('⚠️ Chưa đăng nhập hoặc session đã hết hạn');
+                // Có thể redirect về trang login nếu cần
+                // window.location.href = '/Auth/Login';
+            }
+        });
+
         function showPage(p, el) {
             document.querySelectorAll(".page-section").forEach((s) => s.classList.remove("active"));
             document.querySelectorAll(".sidenav .nav-item").forEach((n) => n.classList.remove("active"));
@@ -91,9 +128,26 @@
             if (el) el.classList.add("active");
             closeNotif();
         }
-        function toggleNotif() { document.getElementById("notifDropdown").classList.toggle("open"); }
-        function closeNotif() { document.getElementById("notifDropdown").classList.remove("open"); }
-        // ... Thêm các hàm còn lại của bạn ...
+        
+        function toggleNotif() { 
+            document.getElementById("notifDropdown").classList.toggle("open"); 
+        }
+        
+        function closeNotif() { 
+            document.getElementById("notifDropdown").classList.remove("open"); 
+        }
+        
+        // Xử lý đăng xuất
+        document.querySelector('.logout')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                // Xóa localStorage
+                AuthManager.clearUserInfo();
+                
+                // Redirect về trang đăng xuất
+                window.location.href = '@Url.Action("Logout", "Auth")';
+            }
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

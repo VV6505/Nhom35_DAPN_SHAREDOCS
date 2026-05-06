@@ -4,13 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - UTE Document Share</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header class="header">
-        <a class="header-logo" href="@Url.Action("Index", "Home")">
+      <a class="header-logo" asp-controller="Home" asp-action="Index">
             <img src="~/images/logo.webp" alt="UTE Logo" class="logo-img" />
             <div class="logo-text">
                 HỆ THỐNG CHIA SẺ TÀI LIỆU<br />TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT
@@ -42,16 +42,16 @@
 
     <div class="layout">
         <nav class="sidenav">
-            <a class="nav-item active" onclick="showPage('dashboard', this)">
+            <a class="nav-item active" onclick="showPage('dashboard', this)" href="/Home/Index">
                 🏠 Trang chủ
             </a>
-            <a class="nav-item" onclick="showPage('search', this)">
+            <a class="nav-item" onclick="showPage('search', this)" href="/Document/Index">
                 🔍 Danh mục tài liệu
             </a>
-            <a class="nav-item" onclick="showPage('upload', this)">
+            <a class="nav-item" onclick="showPage('upload', this)" href="/Document/Upload">
                 📤 Đăng tải tài liệu
             </a>
-            <a class="nav-item" onclick="showPage('report', this)">
+            <a class="nav-item" onclick="showPage('report', this)" href="/Document/RecentReports">
                 🚩 Báo cáo vi phạm
             </a>
             <div class="nav-divider"></div>
@@ -82,7 +82,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @* Copy toàn bộ thẻ <script> từ code của bạn vào đây *@
+    @* Copy toàn bộ thẻ script từ code của bạn vào đây *@
     <script>
         function showPage(p, el) {
             document.querySelectorAll(".page-section").forEach((s) => s.classList.remove("active"));

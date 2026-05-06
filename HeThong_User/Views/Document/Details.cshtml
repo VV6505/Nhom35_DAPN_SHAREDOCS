@@ -1,0 +1,69 @@
+﻿@model HeThong_User.Models.TaiLieu
+
+@{
+    ViewData["Title"] = "Chi tiết tài liệu";
+}
+
+<div class="page-section active" style="display: block !important; padding: 20px;">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Document/Index">Danh mục</a></li>
+            <li class="breadcrumb-item active">@Model.TieuDe</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Thông tin tóm tắt & Preview -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 p-4 mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-danger me-2">@Model.LoaiFile</span>
+                    <h3 class="fw-bold mb-0">@Model.TieuDe</h3>
+                </div>
+                <p class="text-muted">@Model.MoTa</p>
+                <hr />
+                <div class="alert alert-light border">
+                    <h6 class="fw-bold"><i class="fa fa-info-circle"></i> Chi tiết nội dung</h6>
+                    <p class="mb-0 small text-secondary">
+                        Tài liệu này thuộc môn <strong>@Model.MaMonHocNavigation?.TenMonHoc</strong>,
+                        được đăng tải vào ngày @Model.NgayDang?.ToString("dd/MM/yyyy").
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Box Tải xuống & Thông số -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">Thông tin tải</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Lượt tải:</span>
+                        <span class="fw-bold">@Model.LuotTai</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Điểm yêu cầu:</span>
+                        <span class="text-warning fw-bold">⭐ @Model.DiemYeuCau điểm</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4">
+                        <span>Định dạng:</span>
+                        <span class="badge bg-secondary">@Model.LoaiFile</span>
+                    </div>
+                    
+                    <!-- Nút Tải xuống -->
+                    <a href="/uploads/@Model.DuongDanFile" download class="btn btn-success w-100 mb-2 py-2 fw-bold">
+                        <i class="fa fa-download"></i> TẢI XUỐNG NGAY
+                    </a>
+                    <button class="btn btn-outline-primary w-100 py-2">
+                        <i class="fa fa-heart"></i> Lưu vào yêu thích
+                    </button>
+                    <div class="text-center border-top pt-3">
+                        <a href="/Document/Report/@Model.MaTaiLieu" class="text-danger small text-decoration-none">
+                            <i class="fa fa-exclamation-triangle"></i> Báo cáo vi phạm tài liệu này
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

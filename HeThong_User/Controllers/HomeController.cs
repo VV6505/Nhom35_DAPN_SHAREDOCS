@@ -1,32 +1,48 @@
-using System.Diagnostics;
-using HeThong_User.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using HeThong_User.Models;
 
 namespace HeThong_User.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly HeThongChiaSeTaiLieu_V1 _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(HeThongChiaSeTaiLieu_V1 context)
         {
-            _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()
         {
-            return View();
-        }
+            // 1. Lấy các con số thống kê
+            ViewBag.TotalDocs = _context.TaiLieus.Count();
+            ViewBag.TotalUsers = _context.SinhViens.Count();
+            ViewBag.TotalDownloads = _context.TaiLieus.Sum(t => t.LuotTai) ?? 0;
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+            // 2. Lấy 6 tài liệu mới nhất (đã duyệt)
+            var latestDocs = _context.TaiLieus
+                .Include(t => t.MaMonHocNavigation)
+                .Include(t => t.MaloaiTlNavigation)
+                .Where(t => t.TrangThaiDuyet == "DaDuyet")
+                .OrderByDescending(t => t.NgayDang)
+                .Take(6)
+                .ToList();
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+            return View(latestDocs);
+        }
+        public IActionResult Students()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var dsSinhVien = _context.SinhViens.Include(s => s.MaLopNavigation).ToList();
+            return View(dsSinhVien);
+        }
+        public IActionResult History()
+        {
+            var lichSu = _context.LichSuTaiXuongs
+                .Include(l => l.MaTaiLieuNavigation)
+                .OrderByDescending(l => l.NgayTai)
+                .ToList();
+            return View(lichSu);
         }
     }
 }

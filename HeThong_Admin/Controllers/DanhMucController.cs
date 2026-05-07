@@ -18,6 +18,7 @@ namespace HeThong_Admin.Controllers
             var khoas = await _context.Khoas
                 .Include(k => k.Nganhs)
                     .ThenInclude(n => n.MonHocs)
+                        .ThenInclude(m => m.TaiLieus)
                 .OrderBy(k => k.TenKhoa)
                 .ToListAsync();
 
@@ -63,6 +64,21 @@ namespace HeThong_Admin.Controllers
                 var maMH = maxId.ToString("D4") + "0";
                 _context.MonHocs.Add(new MonHoc { MaMonHoc = maMH, TenMonHoc = tenMonHoc, MaNganh = maNganh });
                 await _context.SaveChangesAsync();
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SuaMonHoc(string maMonHoc, string tenMonHoc)
+        {
+            if (!string.IsNullOrEmpty(maMonHoc) && !string.IsNullOrEmpty(tenMonHoc))
+            {
+                var item = await _context.MonHocs.FindAsync(maMonHoc);
+                if (item != null)
+                {
+                    item.TenMonHoc = tenMonHoc;
+                    await _context.SaveChangesAsync();
+                }
             }
             return RedirectToAction("Index");
         }

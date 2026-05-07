@@ -102,13 +102,45 @@
         transform: rotate(45deg);
     }
 </style>
-
 @section Scripts {
     <script>
-        // Hiển thị tên file khi người dùng chọn
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            var fileName = e.target.files[0].name;
-            document.getElementById('file-name').innerHTML = '<i class="fa-solid fa-check-circle"></i> Đã chọn: ' + fileName;
+        $(document).ready(function () {
+            // --- 1. XỬ LÝ SIDEBAR ACTIVE (Vá lỗi Layout) ---
+            var currentUrl = window.location.pathname;
+
+            $('.sidenav a').each(function () {
+                var linkUrl = $(this).attr('href');
+
+                // Xóa trạng thái cũ
+                $(this).closest('li').removeClass('active');
+                $(this).css({
+                    'background-color': 'transparent',
+                    'border-left': 'none'
+                });
+
+                // Tô xanh nếu khớp URL
+                if (currentUrl === linkUrl) {
+                    $(this).closest('li').addClass('active');
+                    $(this).css({
+                        'background-color': '#87CEFA', // Màu xanh nhạt
+                        'border-left': '4px solid #004d73' // Thanh sọc đậm bên trái
+                    });
+                }
+            });
+
+            // --- 2. HIỂN THỊ TÊN FILE KHI CHỌN (Dành cho trang Upload) ---
+            var fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    if (e.target.files.length > 0) {
+                        var fileName = e.target.files[0].name;
+                        var fileNameDisplay = document.getElementById('file-name');
+                        if (fileNameDisplay) {
+                            fileNameDisplay.innerHTML = '<i class="fa-solid fa-check-circle"></i> Đã chọn: ' + fileName;
+                        }
+                    }
+                });
+            }
         });
     </script>
 }

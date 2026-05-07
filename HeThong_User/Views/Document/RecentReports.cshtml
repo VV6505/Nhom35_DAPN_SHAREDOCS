@@ -109,3 +109,34 @@
     .form-select, .form-control { font-size: 13px; }
     .table-hover tbody tr:hover { background-color: #fff9f9; }
 </style>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // 1. Xác định URL hiện tại của trang
+            var currentUrl = window.location.pathname;
+
+            // 2. Tìm tất cả các link trong Sidebar
+            // Lưu ý: Thay '.sidenav a' bằng selector đúng trong code của Leader (ví dụ '.nav-link')
+            $('.sidenav a').each(function () {
+                var linkUrl = $(this).attr('href');
+
+                // 3. Xóa màu xanh ở tất cả các mục trước khi tô màu mới
+                // Thường Leader sẽ dùng class 'active' hoặc đổi màu background trực tiếp
+                $(this).closest('li').removeClass('active'); 
+                $(this).css('background-color', 'transparent'); // Reset màu nếu là style inline
+
+                // 4. Nếu link trùng với URL hiện tại thì "tô xanh" nó
+                if (currentUrl === linkUrl) {
+                    // Nếu Leader dùng class để tô màu:
+                    $(this).closest('li').addClass('active');
+                    
+                    // Nếu Leader tô màu bằng style trực tiếp (như trong ảnh):
+                    $(this).css({
+                        'background-color': '#87CEFA', // Màu xanh nhạt như trong ảnh
+                        'border-left': '4px solid #004d73' // Thanh sọc đậm bên trái
+                    });
+                }
+            });
+        });
+    </script>
+}

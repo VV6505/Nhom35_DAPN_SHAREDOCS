@@ -1,145 +1,139 @@
-﻿@model IEnumerable<HeThong_User.Models.TaiLieu>
+﻿@model IEnumerable<dynamic>
 
 @{
     ViewData["Title"] = "Danh mục tài liệu";
 }
 
-<!-- Ép thẻ div này hiển thị để chống lại CSS ẩn của template cũ -->
-<div class="page-section active" style="display: block !important; padding: 20px;">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold text-primary" style="margin: 0;">DANH MỤC TÀI LIỆU</h4>
-        <span class="badge bg-success fs-6">Đã tìm thấy: @Model.Count() tài liệu</span>
-    </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
-    <div class="row">
-        <!-- Cột trái: Sidebar Filter -->
-        <!-- Cột trái: Sidebar Filter -->
-        <div class="col-md-3 mb-4">
-            <!-- Thêm thẻ form với method="get" để gửi dữ liệu về Controller -->
-            <form method="get" asp-controller="Document" asp-action="Index">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3 text-secondary">
-                            Bộ lọc tài liệu
-                        </h6>
-                    
-                        <label class="fw-bold mb-2 small text-muted">LOẠI TÀI LIỆU</label>
-                
-                        <!-- Dùng vòng lặp để in ra các Checkbox dựa trên Database -->
-                        @if (ViewBag.DanhSachLoai != null)
-                        {
-                            foreach (var loai in ViewBag.DanhSachLoai)
-                            {
-                                // Kiểm tra xem mục này trước đó có được người dùng tick hay không
-                                bool isChecked = ViewBag.SelectedIds.Contains(loai.MaLtl);
-
-                                <div class="form-check mb-2">
-                                    <!-- Thuộc tính name="loaiTaiLieuIds" phải khớp với tên biến trong Controller -->
-                                    <!-- Thuộc tính value sẽ gửi Mã loại (VD: L0001) về Server -->
-                                    <input class="form-check-input" type="checkbox"
-                                           name="loaiTaiLieuIds"
-                                           value="@loai.MaLtl"
-                                           id="loai_@loai.MaLtl"
-                                    @(isChecked ? "checked" : "") />
-                            
-                                    <label class="form-check-label" for="loai_@loai.MaLtl">
-                                        @loai.TenLtl
-                                    </label>
-                                </div>
-                            }
-                        }
-
-                        <button type="submit" class="btn btn-primary w-100 mt-3 btn-sm">Áp dụng bộ lọc</button>
-                
-                        <!-- Nút Xóa bộ lọc (Chỉ hiện khi có chọn bộ lọc) -->
-                        @if (ViewBag.SelectedIds.Count > 0)
-                        {
-                            <a href="/Document/Index" class="btn btn-outline-secondary w-100 mt-2 btn-sm">Xóa bộ lọc</a>
-                        }
-                    </div>
-                </div>
-            </form>
+<div class="main-content py-4">
+    <div class="container-fluid px-4">
+        <div class="page-head mb-4">
+            <h2 class="fw-bold">Danh mục tài liệu</h2>
+            <p class="text-muted small">Duyệt tài liệu theo Khoa <i class="fa-solid fa-chevron-right mx-1"></i> Ngành <i class="fa-solid fa-chevron-right mx-1"></i> Môn học</p>
         </div>
 
-        <!-- Cột phải: Document List -->
-        <div class="col-md-9">
-            <div class="row">
-                @if (!Model.Any())
-                {
-                    <div class="col-12 text-center py-5">
-                        <h5 class="text-muted">Chưa có tài liệu nào được duyệt trên hệ thống.</h5>
+        <div class="row">
+            <div class="col-md-4 col-lg-3">
+                <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                    <div class="card-header bg-white py-3 border-bottom-0">
+                        <h6 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-list-ul me-2"></i>Danh mục</h6>
                     </div>
-                }
-                else
-                {
-                    foreach (var item in Model)
-                    {
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100 shadow-sm border-0 document-card transition-hover">
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <!-- Tự động đổi màu Tag theo loại file -->
-                                        @if (item.LoaiFile == "PDF")
-                                        {
-                                            <span class="badge bg-danger">PDF</span>
-                                        }
-                                        else if (item.LoaiFile == "DOCX" || item.LoaiFile == "DOC")
-                                        {
-                                            <span class="badge bg-primary">DOCX</span>
-                                        }
-                                        else if (item.LoaiFile == "PPT" || item.LoaiFile == "PPTX")
-                                        {
-                                            <span class="badge bg-warning text-dark">PPT</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">@item.LoaiFile</span>
-                                        }
-                                        
-                                        <span class="small text-muted" title="Lượt tải">Lượt tải: @item.LuotTai</span>
+                    <div class="card-body p-3 pt-0" style="max-height: 70vh; overflow-y: auto;">
+                        <ul class="list-unstyled tree-menu">
+                            @foreach (var khoa in ViewBag.DanhMuc)
+                            {
+                                <li class="mb-2">
+                                    <div class="folder-toggle d-flex align-items-center py-1 fw-bold text-dark" style="cursor: pointer;">
+                                        <i class="fa-solid fa-chevron-right me-2 small toggle-icon shadow-none"></i>
+                                        <i class="fa-solid fa-folder text-warning me-2"></i> @khoa.TenKhoa
                                     </div>
                                     
-                                    <h6 class="card-title fw-bold text-dark mt-2 mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 40px;">
-                                        @item.TieuDe
-                                    </h6>
-                                    
-                                    <!-- Đẩy phần thông tin xuống đáy thẻ -->
-                                    <div class="mt-auto">
-                                        <p class="small text-muted mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            <strong>Môn:</strong> @(item.MaMonHocNavigation?.TenMonHoc ?? "Chưa cập nhật")
-                                        </p>
-                                        <p class="small text-muted mb-3" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            <strong>Loại:</strong> @(item.MaloaiTlNavigation?.TenLtl ?? "Khác")
-                                        </p>
-                                        
-                                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                                            <span class="text-warning fw-bold" title="Điểm yêu cầu để tải">
-                                                ⭐ @item.DiemYeuCau
-                                            </span>
-                                            <!-- Sửa từ <a href="#" ... thành link động -->
-                                            <a href="/Document/Details/@item.MaTaiLieu" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                                Chi tiết
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <ul class="list-unstyled ms-4 border-start ps-2 sub-menu" style="display: none;">
+                                        @foreach (var nganh in khoa.Nganhs)
+                                        {
+                                            <li class="mb-1">
+                                                <div class="nganh-toggle d-flex align-items-center py-1 text-secondary small fw-bold" style="cursor: pointer;">
+                                                    <i class="fa-solid fa-chevron-right me-2 small toggle-icon"></i>
+                                                    <i class="fa-solid fa-folder-open text-warning me-2 opacity-75"></i> @nganh.TenNganh
+                                                </div>
+                                                
+                                                <ul class="list-unstyled ms-4 sub-menu" style="display: none;">
+                                                    @foreach (var mon in nganh.MonHocs)
+                                                    {
+                                                        <li class="py-1">
+                                                            <a href="/Document/Index?idMon=@mon.MaMonHoc&searchString=@ViewBag.SearchString" 
+                                                               class="text-decoration-none small @(ViewBag.CurrentMon == mon.MaMonHoc ? "text-primary fw-bold" : "text-muted")">
+                                                                <i class="fa-regular fa-file-lines me-2"></i> @mon.TenMonHoc (@mon.TaiLieus.Count)
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8 col-lg-9">
+                <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                    <div class="card-body p-0">
+                        <form asp-action="Index" method="get" class="p-3 border-bottom d-flex gap-2">
+                            <input type="hidden" name="idMon" value="@ViewBag.CurrentMon" />
+                            <div class="flex-grow-1 position-relative">
+                                <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 15px; top: 12px;"></i>
+                                <input type="text" name="searchString" value="@ViewBag.SearchString" 
+                                       class="form-control ps-5 rounded-pill border-0 bg-light" placeholder="Nhập tên tài liệu cần tìm...">
                             </div>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm" style="background: #004d73;">Tìm kiếm</button>
+                            @if (!string.IsNullOrEmpty(ViewBag.SearchString) || !string.IsNullOrEmpty(ViewBag.CurrentMon))
+                            {
+                                <a href="/Document/Index" class="btn btn-outline-secondary rounded-pill"><i class="fa-solid fa-rotate-left"></i> Xóa lọc</a>
+                            }
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr style="font-size: 11px;">
+                                        <th class="ps-4 text-secondary text-uppercase py-3">Tên tài liệu</th>
+                                        <th class="text-secondary text-uppercase">Người đăng</th>
+                                        <th class="text-secondary text-uppercase text-center">Lượt tải</th>
+                                        <th class="text-end pe-4">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="fw-bold text-dark mb-0">@item.Data.TieuDe</div>
+                                                <div class="text-muted small">Môn: @item.TenMon</div>
+                                            </td>
+                                            <td class="small text-muted">@item.TenNguoiDang</td>
+                                            <td class="text-center fw-bold text-primary">@item.Data.LuotTai</td>
+                                            <td class="text-end pe-4">
+                                                <a href="/Document/Details/@item.Data.MaTaiLieu" class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" style="background: #004d73;">Xem</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
-                    }
-                }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- CSS cho hiệu ứng Hover nổi thẻ tài liệu -->
 <style>
-    .transition-hover {
-        transition: all 0.3s ease;
-    }
-    .transition-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-    }
+    .tree-menu li { transition: all 0.3s; }
+    .toggle-icon { transition: transform 0.3s; font-size: 10px; }
+    .rotate-90 { transform: rotate(90deg); }
+    .tree-menu a:hover { color: #004d73 !important; text-decoration: underline !important; }
+    .table-hover tbody tr:hover { background-color: #f8fbff; }
 </style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // 1. Xử lý Thu gọn/Mở rộng cây thư mục
+            $('.folder-toggle, .nganh-toggle').click(function (e) {
+                var subMenu = $(this).next('.sub-menu');
+                var icon = $(this).find('.toggle-icon');
+                
+                subMenu.slideToggle(300);
+                icon.toggleClass('rotate-90');
+            });
+
+            // 2. Tự động mở cây thư mục tại vị trí đang chọn
+            $('.text-primary.fw-bold').parents('.sub-menu').show();
+            $('.text-primary.fw-bold').parents('.sub-menu').prev().find('.toggle-icon').addClass('rotate-90');
+        });
+    </script>
+}

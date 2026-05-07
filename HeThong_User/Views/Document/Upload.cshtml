@@ -4,67 +4,111 @@
     ViewData["Title"] = "Đăng tải tài liệu";
 }
 
-<div class="page-section active" style="display: block !important; padding: 20px;">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow border-0">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0 fw-bold"><i class="fa fa-upload"></i> ĐĂNG TẢI TÀI LIỆU MỚI</h5>
+@* Nhúng Font Awesome nếu file Layout chưa có *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<div class="main-content py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="upload-header mb-4">
+                    <h2 class="fw-bold mb-1">Đăng tải tài liệu</h2>
+                    <p class="text-muted">Chia sẻ tài liệu với cộng đồng</p>
                 </div>
-                <div class="card-body p-4">
-                    <!-- Quan trọng: Thuộc tính enctype="multipart/form-data" là BẮT BUỘC để upload file -->
+
+                <div class="card shadow-sm border-0 p-4" style="border-radius: 15px;">
                     <form asp-action="Upload" method="post" enctype="multipart/form-data">
                         
-                        <!-- Hiển thị báo lỗi nếu có -->
-                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tiêu đề tài liệu <span class="text-danger">*</span></label>
-                            <input type="text" asp-for="TieuDe" class="form-control" placeholder="Nhập tên tài liệu..." required />
+                        <div class="form-group mb-3">
+                            <label class="form-label fw-bold small text-secondary">Tên tài liệu</label>
+                            <input asp-for="TieuDe" class="form-control bg-light border-0 py-2" placeholder="Nhập tên tài liệu..." required />
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Môn học liên quan <span class="text-danger">*</span></label>
-                                <select asp-for="MaMonHoc" class="form-select" required>
-                                    <option value="">-- Chọn môn học --</option>
-                                    @foreach (var mon in ViewBag.MaMonHoc)
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Môn học</label>
+                                <select asp-for="MaMonHoc" class="form-select bg-light border-0 py-2">
+                                    <option value="">Chọn môn</option>
+                                    @foreach (var item in ViewBag.MaMonHoc)
                                     {
-                                        <option value="@mon.MaMonHoc">@mon.TenMonHoc</option>
+                                        <option value="@item.MaMonHoc">@item.TenMonHoc</option>
                                     }
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Loại tài liệu <span class="text-danger">*</span></label>
-                                <select asp-for="MaloaiTl" class="form-select" required>
-                                    <option value="">-- Chọn loại tài liệu --</option>
-                                    @foreach (var loai in ViewBag.MaloaiTl)
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Loại</label>
+                                <select asp-for="MaloaiTl" class="form-select bg-light border-0 py-2">
+                                    <option value="">Giáo trình</option>
+                                    @foreach (var item in ViewBag.MaloaiTl)
                                     {
-                                        <option value="@loai.MaLtl">@loai.TenLtl</option>
+                                        <option value="@item.MaLtl">@item.TenLtl</option>
                                     }
                                 </select>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Mô tả ngắn (Tùy chọn)</label>
-                            <textarea asp-for="MoTa" class="form-control" rows="3" placeholder="Ghi chú thêm về tài liệu..."></textarea>
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold small text-secondary">Mô tả</label>
+                            <textarea asp-for="MoTa" class="form-control bg-light border-0 py-2" rows="4" placeholder="Mô tả ngắn gọn..."></textarea>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Chọn File tải lên <span class="text-danger">*</span></label>
-                            <input type="file" name="fileUpload" class="form-control" required accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar" />
-                            <div class="form-text text-muted">Hỗ trợ định dạng: PDF, Word, PowerPoint, Excel, ZIP (Tối đa 50MB)</div>
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold small text-secondary">Tải file</label>
+                            <div class="upload-zone text-center p-5 border-dashed rounded-3 position-relative" id="drop-zone">
+                                <input type="file" name="fileUpload" id="fileInput" class="position-absolute inset-0 opacity-0 w-100 h-100" style="cursor:pointer;" required />
+                                <div class="upload-content">
+                                    <i class="fa-solid fa-paperclip fa-2x mb-3 text-dark"></i>
+                                    <p class="mb-1 text-secondary">Kéo thả hoặc <span class="text-primary fw-bold">chọn file</span></p>
+                                    <p class="text-muted small mb-0">PDF, DOCX, PPTX - Tối đa 25MB</p>
+                                    <div id="file-name" class="mt-2 fw-bold text-success small"></div>
+                                </div>
+                            </div>
                         </div>
 
-                        <hr />
-                        <div class="d-flex justify-content-end">
-                            <a href="/Document/Index" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Đăng tải ngay</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill" style="background-color: #004d73; border: none;">
+                            Đăng tải tài liệu
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* CSS Tùy chỉnh để giống ảnh mẫu */
+    .border-dashed {
+        border: 2px dashed #ccc;
+        background-color: #fafafa;
+        transition: 0.3s;
+    }
+
+        .border-dashed:hover {
+            border-color: #004d73;
+            background-color: #f0f7ff;
+        }
+
+    .form-control::placeholder, .form-select {
+        font-size: 14px;
+        color: #999;
+    }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff !important;
+            box-shadow: 0 0 0 3px rgba(0,77,115,0.1);
+        }
+
+    .upload-zone i {
+        transform: rotate(45deg);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Hiển thị tên file khi người dùng chọn
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            var fileName = e.target.files[0].name;
+            document.getElementById('file-name').innerHTML = '<i class="fa-solid fa-check-circle"></i> Đã chọn: ' + fileName;
+        });
+    </script>
+}

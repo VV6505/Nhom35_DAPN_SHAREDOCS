@@ -1,91 +1,162 @@
 ﻿@model IEnumerable<HeThong_User.Models.TaiLieu>
 
 @{
-    ViewData["Title"] = "Trang chủ";
+    ViewData["Title"] = "Trang chủ - Bảng tin";
 }
 
-<div class="page-section active" style="display: block !important; padding: 20px;">
-    <!-- 1. PHẦN THỐNG KÊ -->
-    <div class="row mb-4">
-        <!-- Click vào đây để sang danh sách tài liệu -->
-        <div class="col-md-4">
-            <a href="/Document/Index" class="text-decoration-none">
-                <div class="card bg-primary text-white shadow-sm border-0 stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="display-6 me-3"><i class="fa fa-file-alt"></i></div>
-                        <div>
-                            <h6 class="mb-0">TÀI LIỆU</h6>
-                            <h2 class="mb-0 fw-bold">@ViewBag.TotalDocs</h2>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
+@* Bước 1: Nhúng Font Awesome trực tiếp vào đây vì không sửa được file Layout *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
-        <!-- Click vào đây để xem danh sách sinh viên -->
-        <div class="col-md-4">
-            <a href="/Home/Students" class="text-decoration-none">
-                <div class="card bg-success text-white shadow-sm border-0 stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="display-6 me-3"><i class="fa fa-users"></i></div>
-                        <div>
-                            <h6 class="mb-0">SINH VIÊN</h6>
-                            <h2 class="mb-0 fw-bold">@ViewBag.TotalUsers</h2>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <!-- Click vào đây để xem lịch sử tải xuống -->
-        <div class="col-md-4">
-            <a href="/Document/History" class="text-decoration-none">
-                <div class="card bg-warning text-white shadow-sm border-0 stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="display-6 me-3"><i class="fa fa-download"></i></div>
-                        <div>
-                            <h6 class="mb-0">LƯỢT TẢI</h6>
-                            <h2 class="mb-0 fw-bold">@ViewBag.TotalDownloads</h2>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <!-- 2. PHẦN TÀI LIỆU MỚI NHẤT -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold"><i class="fa fa-clock"></i> TÀI LIỆU MỚI ĐĂNG TẢI</h5>
-        <a href="/Document/Index" class="btn btn-sm btn-link">Xem tất cả</a>
-    </div>
-
-    <div class="row">
-        @foreach (var item in Model)
-        {
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
-                    <div class="card-body">
-                        <span class="badge bg-danger mb-2 small">@item.LoaiFile</span>
-                        <h6 class="card-title fw-bold">@item.TieuDe</h6>
-                        <p class="small text-muted mb-2">Môn: @item.MaMonHocNavigation?.TenMonHoc</p>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                            <span class="text-warning small fw-bold">⭐ @item.DiemYeuCau điểm</span>
-                            <a href="/Document/Details/@item.MaTaiLieu" class="btn btn-primary btn-sm rounded-pill px-3">Xem</a>
-                        </div>
-                    </div>
-                </div>
+<div class="main-content">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            
+            <div class="page-head mb-4">
+                <h1 class="fw-bold">Bảng tin tài liệu</h1>
+                <p class="text-muted">Xem tài liệu từ cộng đồng • Thích, bình luận và tải xuống</p>
             </div>
-        }
-    </div>
-    <style>
-            .stat-card {
-                transition: transform 0.2s, box-shadow 0.2s;
-                cursor: pointer;
-            }
 
-                .stat-card:hover {
-                    transform: scale(1.05);
-                    box-shadow: 0 8px 15px rgba(0,0,0,0.2) !important;
-                }
-    </style>
+            @foreach (var item in Model)
+            {
+                <div class="post mb-4 shadow-sm" data-id="@item.MaTaiLieu" style="background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden;">
+                    <div class="post-header d-flex justify-content-between align-items-start p-3">
+                        <div class="post-header-info d-flex align-items-center">
+                            <div class="post-avatar av2" style="width: 45px; height: 45px; background: #004d73; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                @(item.MaNguoiDang?.Substring(0, 2).ToUpper() ?? "SV")
+                            </div>
+                            <div class="ms-3">
+                                <div class="post-user fw-bold" style="font-size: 15px;">Phạm Lê Thiệu Quang</div>
+                                <div class="post-meta text-muted" style="font-size: 12px;">
+                                    Sinh viên CNTT • @(item.NgayDang?.ToString("dd/MM/yyyy")) • <i class="fa-solid fa-earth-americas"></i> Công khai
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-header-actions d-flex gap-2">
+                            <button class="btn btn-light btn-sm text-secondary"><i class="fa-regular fa-star"></i> Lưu</button>
+                            <a href="/uploads/@item.DuongDanFile" download class="btn btn-light btn-sm text-primary">
+                                <i class="fa-solid fa-download"></i> Tải xuống
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="post-body px-3 mb-3" style="font-size: 14px; line-height: 1.5;">
+                        Chia sẻ cho các bạn <strong>@item.TieuDe</strong> <i class="fa-solid fa-book-open text-primary"></i> @item.MoTa. 
+                        Hi vọng giúp ích cho các bạn ôn thi tốt! <i class="fa-solid fa-hand-fist text-warning"></i>
+                    </div>
+
+                    <div class="post-attach mx-3 mb-3 border rounded-3" onclick="location.href='/Document/Details/@item.MaTaiLieu'" style="cursor: pointer; overflow: hidden; transition: 0.3s;">
+                        <div class="post-attach-icon py-4 text-center" style="background: #81D4FA; color: #fff;">
+                            <i class="fa-solid fa-file-pdf fa-3x"></i>
+                        </div>
+                        <div class="post-attach-info p-3 bg-white border-top">
+                            <div class="post-attach-name fw-bold" style="font-size: 14px;">@item.TieuDe</div>
+                            <div class="post-attach-detail text-muted" style="font-size: 12px;">
+                                @item.LoaiFile • @(item.KichThuoc)MB • Môn: @(item.MaMonHocNavigation?.TenMonHoc ?? "N/A") • @item.LuotTai lượt tải
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post-stats px-3 py-2 d-flex justify-content-between align-items-center border-bottom" style="font-size: 12px; color: #65676b;">
+                        <div class="post-stats-left">
+                            <i class="fa-solid fa-heart text-danger"></i> 
+                            <span class="like-count">@item.DanhGia.Count</span> lượt thích
+                        </div>
+                        <div class="post-stats-right">
+                            <span class="comment-count">@item.BinhLuans.Count bình luận</span>
+                            <span class="ms-2">@item.LuotTai lượt tải</span>
+                        </div>
+                    </div>
+
+                    <div class="post-actions d-flex p-1">
+                        <button class="post-act btn-like flex-grow-1 btn btn-link text-decoration-none text-secondary fw-bold" data-id="@item.MaTaiLieu" style="font-size: 13px;">
+                            <i class="fa-regular fa-heart"></i> Thích
+                        </button>
+                        <button class="post-act btn-comment-toggle flex-grow-1 btn btn-link text-decoration-none text-secondary fw-bold" style="font-size: 13px;">
+                            <i class="fa-regular fa-comment"></i> Bình luận
+                        </button>
+                        <a href="/Document/Report/@item.MaTaiLieu" class="post-act flex-grow-1 btn btn-link text-decoration-none text-secondary fw-bold" style="font-size: 13px;">
+                            <i class="fa-solid fa-flag"></i> Báo cáo
+                        </a>
+                    </div>
+
+                    <div class="post-comments-section" style="display:none; padding: 15px; background: #f8f9fa; border-top: 1px solid #eee;">
+                        <div class="comment-list mb-3">
+                            @foreach(var bl in item.BinhLuans) {
+                                <div class="comment d-flex gap-2 mb-2">
+                                    <div class="comment-av d-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width:30px; height:30px; font-size:10px; font-weight:bold;">
+                                        @(bl.MaNd?.Substring(0,2).ToUpper() ?? "SV")
+                                    </div>
+                                    <div class="comment-bubble bg-white p-2 rounded-3 border flex-grow-1 shadow-sm">
+                                        <div class="comment-name fw-bold" style="font-size:12px;">@bl.MaNd</div>
+                                        <div class="comment-text" style="font-size:13px;">@bl.NoiDung</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="comment-input-group d-flex gap-2">
+                            <input type="text" class="txt-comment-input form-control rounded-pill border-secondary-subtle" placeholder="Viết bình luận..." style="font-size:13px;">
+                            <button class="btn btn-primary btn-send-comment rounded-circle d-flex align-items-center justify-content-center" data-id="@item.MaTaiLieu" style="width:35px; height:35px;">
+                                <i class="fa-solid fa-paper-plane" style="font-size:12px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<style>
+    .post-act:hover { background-color: #f2f2f2; color: #004d73 !important; }
+    .post-attach:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .btn-like.liked { color: #e53935 !important; }
+    .btn-like.liked i { font-weight: 900; }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Xử lý Thích
+            $('.btn-like').click(function () {
+                var btn = $(this);
+                var maTL = btn.data('id');
+                var post = btn.closest('.post');
+                $.post('/Document/ToggleLike', { maTL: maTL }, function (data) {
+                    if (data.success) {
+                        post.find('.like-count').text(data.count);
+                        if(data.liked) {
+                            btn.addClass('liked').find('i').removeClass('fa-regular').addClass('fa-solid');
+                        } else {
+                            btn.removeClass('liked').find('i').removeClass('fa-solid').addClass('fa-regular');
+                        }
+                    }
+                });
+            });
+
+            // Hiện/Ẩn bình luận
+            $('.btn-comment-toggle').click(function () {
+                $(this).closest('.post').find('.post-comments-section').slideToggle(200);
+            });
+
+            // Gửi bình luận
+            $('.btn-send-comment').click(function () {
+                var btn = $(this);
+                var maTL = btn.data('id');
+                var input = btn.closest('.comment-input-group').find('.txt-comment-input');
+                var noiDung = input.val();
+                if (noiDung.trim() == "") return;
+                $.post('/Document/AddComment', { maTL: maTL, noiDung: noiDung }, function (data) {
+                    if (data.success) {
+                        var newCmt = `<div class="comment d-flex gap-2 mb-2"><div class="comment-av d-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width:30px; height:30px; font-size:10px; font-weight:bold;">NO</div><div class="comment-bubble bg-white p-2 rounded-3 border flex-grow-1 shadow-sm"><div class="comment-name fw-bold" style="font-size:12px;">${data.userName}</div><div class="comment-text" style="font-size:13px;">${data.content}</div></div></div>`;
+                        btn.closest('.post').find('.comment-list').append(newCmt);
+                        input.val('');
+                        var countSpan = btn.closest('.post').find('.comment-count');
+                        var count = parseInt(countSpan.text()) || 0;
+                        countSpan.text((count + 1) + " bình luận");
+                    }
+                });
+            });
+        });
+    </script>
+}

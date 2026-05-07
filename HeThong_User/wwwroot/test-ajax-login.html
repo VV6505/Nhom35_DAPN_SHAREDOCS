@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AJAX Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-line {
+            margin: 5px 0;
+        }
+        .log-info { color: #0066cc; }
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test AJAX Login</h1>
+        
+        <form id="testForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" value="sv_mai" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" value="123456" required>
+            </div>
+            
+            <button type="submit" id="submitBtn">🔐 Test Login</button>
+            <button type="button" onclick="checkLocalStorage()">📦 Check localStorage</button>
+            <button type="button" onclick="clearLocalStorage()">🗑️ Clear localStorage</button>
+        </form>
+        
+        <div id="result" class="result"></div>
+        
+        <div class="log" id="log">
+            <div class="log-line log-info">Sẵn sàng để test...</div>
+        </div>
+    </div>
+    
+    <script>
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+            console.log(message);
+        }
+        
+        function showResult(message, isSuccess) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = `result ${isSuccess ? 'success' : 'error'}`;
+            result.style.display = 'block';
+        }
+        
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Đang test...';
+            
+            addLog('🔄 Bắt đầu test AJAX login...', 'info');
+            
+            try {
+                const formData = new FormData(e.target);
+                const username = formData.get('username');
+                const password = formData.get('password');
+                
+                addLog(`📤 Username: ${username}`, 'info');
+                addLog(`📤 Password: ${'*'.repeat(password.length)}`, 'info');
+                
+                // Test 1: Gửi request với AJAX header
+                addLog('📤 Gửi request với X-Requested-With header...', 'info');
+                
+                const response = await fetch('/Auth/Login', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                
+                addLog(`📥 Response status: ${response.status}`, 'info');
+                addLog(`📥 Response content-type: ${response.headers.get('content-type')}`, 'info');
+                
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    addLog('✅ Response là JSON!', 'success');
+                    
+                    const result = await response.json();
+                    addLog(`📥 Response data: ${JSON.stringify(result)}`, 'info');
+                    
+                    if (result.success) {
+                        addLog('✅ Đăng nhập thành công!', 'success');
+                        addLog(`👤 User info: ${JSON.stringify(result.userInfo)}`, 'success');
+                        
+                        // Lưu vào localStorage
+                        localStorage.setItem('userInfo', JSON.stringify(result.userInfo));
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('loginTime', new Date().toISOString());
+                        
+                        addLog('💾 Đã lưu vào localStorage', 'success');
+                        showResult('✅ Test thành công! Đã lưu vào localStorage', true);
+                    } else {
+                        addLog('❌ Đăng nhập thất bại: ' + result.message, 'error');
+                        showResult('❌ ' + result.message, false);
+                    }
+                } else {
+                    addLog('❌ Response KHÔNG phải JSON!', 'error');
+                    addLog('⚠️ Server có thể đang redirect thay vì trả JSON', 'error');
+                    
+                    const text = await response.text();
+                    addLog(`📄 Response text (first 200 chars): ${text.substring(0, 200)}`, 'info');
+                    
+                    showResult('❌ Server không trả về JSON. Kiểm tra log!', false);
+                }
+                
+            } catch (error) {
+                addLog(`❌ Lỗi: ${error.message}`, 'error');
+                showResult('❌ Có lỗi xảy ra: ' + error.message, false);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔐 Test Login';
+            }
+        });
+        
+        function checkLocalStorage() {
+            addLog('🔍 Kiểm tra localStorage...', 'info');
+            
+            const userInfo = localStorage.getItem('userInfo');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const loginTime = localStorage.getItem('loginTime');
+            
+            if (userInfo) {
+                addLog('✅ userInfo: ' + userInfo, 'success');
+                const parsed = JSON.parse(userInfo);
+                addLog(`   - Tên: ${parsed.TenNguoiDung}`, 'success');
+                addLog(`   - Email: ${parsed.Email}`, 'success');
+                addLog(`   - Điểm: ${parsed.DiemTichLuy}`, 'success');
+            } else {
+                addLog('❌ Không có userInfo', 'error');
+            }
+            
+            addLog(`📌 isLoggedIn: ${isLoggedIn || 'null'}`, 'info');
+            addLog(`📌 loginTime: ${loginTime || 'null'}`, 'info');
+            
+            showResult(userInfo ? '✅ Có dữ liệu trong localStorage' : '❌ Không có dữ liệu', !!userInfo);
+        }
+        
+        function clearLocalStorage() {
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('loginTime');
+            addLog('🗑️ Đã xóa localStorage', 'info');
+            showResult('✅ Đã xóa localStorage', true);
+        }
+    </script>
+</body>
+</html>

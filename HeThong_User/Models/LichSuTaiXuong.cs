@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HeThong_User.Models;
 
 public partial class LichSuTaiXuong
 {
-    public int MaDownTl { get; set; }
+    public int MaDownTL { get; set; }
 
     public string? MaTaiLieu { get; set; }
 

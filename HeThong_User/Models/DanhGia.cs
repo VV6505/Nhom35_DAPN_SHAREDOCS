@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HeThong_User.Models;
 
-public partial class DanhGium
+public partial class DanhGia
 {
     public string MaDg { get; set; } = null!;
 
@@ -14,6 +14,8 @@ public partial class DanhGium
     public int? SoSaoDg { get; set; }
 
     public DateTime? ThoiGian { get; set; }
+
+    public virtual TaiKhoan? MaNdNavigation { get; set; }
 
     public virtual TaiLieu? MaTlNavigation { get; set; }
 }

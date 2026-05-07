@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +19,7 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
 
     public virtual DbSet<BinhLuan> BinhLuans { get; set; }
 
-    public virtual DbSet<DanhGium> DanhGia { get; set; }
+    public virtual DbSet<DanhGia> DanhGia { get; set; }
 
     public virtual DbSet<DoQuy> DoQuies { get; set; }
 
@@ -49,13 +49,12 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
 
     public virtual DbSet<ThongBao> ThongBaos { get; set; }
 
-    public virtual DbSet<TlyeuThich> TlyeuThiches { get; set; }
+    public virtual DbSet<TLYeuThich> TLYeuThiches { get; set; }
 
     public virtual DbSet<VaiTro> VaiTros { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=localhost\\KIEUOANH;Database=HeThongChiaSeTaiLieu_V1;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Data Source=DESKTOPPPRE7540\\PHUNGVANVU;Initial Catalog=SHAREDOCS;Integrated Security=True;Trust Server Certificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +86,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaTaiLieuNavigation).WithMany(p => p.BaoCaoViPhams)
                 .HasForeignKey(d => d.MaTaiLieu)
                 .HasConstraintName("FK__BaoCaoViP__MaTai__71D1E811");
+
+            entity.HasOne(d => d.NguoiBaoCaoNavigation).WithMany(p => p.BaoCaoViPhams)
+                .HasForeignKey(d => d.NguoiBaoCao)
+                .HasConstraintName("FK__BaoCaoViP__Nguoi__72C60C4A");
         });
 
         modelBuilder.Entity<BinhLuan>(entity =>
@@ -120,9 +123,11 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
                 .HasConstraintName("FK__BinhLuan__MaTL__66603565");
         });
 
-        modelBuilder.Entity<DanhGium>(entity =>
+        modelBuilder.Entity<DanhGia>(entity =>
         {
             entity.HasKey(e => e.MaDg).HasName("PK__DanhGia__27258660FEBF9C4E");
+
+            entity.ToTable("DanhGia");
 
             entity.Property(e => e.MaDg)
                 .HasMaxLength(5)
@@ -167,7 +172,7 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
         {
             entity.HasKey(e => e.MaGv).HasName("PK__GiangVie__2725AEF3C2082FB4");
 
-            entity.ToTable("GiangVien");
+            entity.ToTable("GiangVien", tb => tb.HasTrigger("trg_CreateAccountForGV"));
 
             entity.Property(e => e.MaGv)
                 .HasMaxLength(5)
@@ -183,11 +188,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength();
-            entity.Property(e => e.MaTk)
-                .HasMaxLength(5)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("MaTK");
+            entity.Property(e => e.LoaiGv)
+                .HasMaxLength(50)
+                .HasDefaultValue("GV")
+                .HasColumnName("loaiGV");
             entity.Property(e => e.Sdt)
                 .HasMaxLength(10)
                 .IsUnicode(false)
@@ -199,10 +203,6 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaKhoaNavigation).WithMany(p => p.GiangViens)
                 .HasForeignKey(d => d.MaKhoa)
                 .HasConstraintName("FK__GiangVien__MaKho__46E78A0C");
-
-            entity.HasOne(d => d.MaTkNavigation).WithMany(p => p.GiangViens)
-                .HasForeignKey(d => d.MaTk)
-                .HasConstraintName("FK__GiangVien__MaTK__47DBAE45");
         });
 
         modelBuilder.Entity<HocKy>(entity =>
@@ -241,15 +241,13 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
 
         modelBuilder.Entity<LichSuDiem>(entity =>
         {
-            entity.HasKey(e => e.MaLs).HasName("PK__LichSuDi__2725C772A761C606");
+            entity.HasKey(e => e.MaLS).HasName("PK__LichSuDi__2725C772A761C606");
 
             entity.ToTable("LichSuDiem");
 
-            entity.Property(e => e.MaLs)
-                .HasMaxLength(5)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("MaLS");
+            entity.Property(e => e.MaLS)
+                .HasColumnName("MaLS")
+                .ValueGeneratedOnAdd();
             entity.Property(e => e.LyDo).HasMaxLength(100);
             entity.Property(e => e.MaHk)
                 .HasMaxLength(5)
@@ -273,11 +271,13 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
 
         modelBuilder.Entity<LichSuTaiXuong>(entity =>
         {
-            entity.HasKey(e => e.MaDownTl).HasName("PK__LichSuTa__0F610348817C63F4");
+            entity.HasKey(e => e.MaDownTL).HasName("PK__LichSuTa__0F610348817C63F4");
 
             entity.ToTable("LichSuTaiXuong");
 
-            entity.Property(e => e.MaDownTl).HasColumnName("MaDownTL");
+            entity.Property(e => e.MaDownTL)
+                .HasColumnName("MaDownTL")
+                .ValueGeneratedOnAdd();
             entity.Property(e => e.MaNd)
                 .HasMaxLength(5)
                 .IsUnicode(false)
@@ -379,7 +379,7 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
         {
             entity.HasKey(e => e.MaSv).HasName("PK__SinhVien__2725081AD83304FE");
 
-            entity.ToTable("SinhVien");
+            entity.ToTable("SinhVien", tb => tb.HasTrigger("trg_CreateAccountForSV"));
 
             entity.Property(e => e.MaSv)
                 .HasMaxLength(5)
@@ -395,11 +395,6 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength();
-            entity.Property(e => e.MaTk)
-                .HasMaxLength(5)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("MaTK");
             entity.Property(e => e.TenSv)
                 .HasMaxLength(100)
                 .HasColumnName("TenSV");
@@ -410,10 +405,6 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaLopNavigation).WithMany(p => p.SinhViens)
                 .HasForeignKey(d => d.MaLop)
                 .HasConstraintName("FK__SinhVien__MaLop__4BAC3F29");
-
-            entity.HasOne(d => d.MaTkNavigation).WithMany(p => p.SinhViens)
-                .HasForeignKey(d => d.MaTk)
-                .HasConstraintName("FK__SinhVien__MaTK__4CA06362");
         });
 
         modelBuilder.Entity<TaiKhoan>(entity =>
@@ -433,15 +424,34 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
                 .IsFixedLength();
             entity.Property(e => e.MatKhau)
                 .HasMaxLength(255)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .HasDefaultValue("123456");
             entity.Property(e => e.TenTk)
                 .HasMaxLength(100)
                 .HasColumnName("TenTK");
-            entity.Property(e => e.TrangThai).HasMaxLength(100);
+            entity.Property(e => e.TrangThai).HasDefaultValue(1);
+            entity.Property(e => e.MaGv)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("MaGV");
+            entity.Property(e => e.MaSv)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("MaSV");
+
+            entity.HasOne(d => d.MaGvNavigation).WithMany(p => p.TaiKhoans)
+                .HasForeignKey(d => d.MaGv)
+                .HasConstraintName("FK__TaiKhoan__MaGV__5EBF139D");
+
+            entity.HasOne(d => d.MaSvNavigation).WithMany(p => p.TaiKhoans)
+                .HasForeignKey(d => d.MaSv)
+                .HasConstraintName("FK__TaiKhoan__MaSV__5FB337D6");
 
             entity.HasOne(d => d.MaVaiTroNavigation).WithMany(p => p.TaiKhoans)
                 .HasForeignKey(d => d.MaVaiTro)
-                .HasConstraintName("FK__TaiKhoan__MaVaiT__440B1D61");
+                .HasConstraintName("FK_TaiKhoan_VaiTro");
         });
 
         modelBuilder.Entity<TaiLieu>(entity =>
@@ -454,63 +464,67 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength();
-            entity.Property(e => e.DiemYeuCau).HasColumnName("diemYeuCau");
+            entity.Property(e => e.DiemYeuCau).HasColumnName("DiemYeuCau");
             entity.Property(e => e.DuongDanFile)
                 .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.LanTaiBan)
                 .HasDefaultValue(1)
-                .HasColumnName("lanTaiBan");
+                .HasColumnName("LanTaiBan");
             entity.Property(e => e.LoaiFile)
                 .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.LuotTai).HasDefaultValue(0);
             entity.Property(e => e.LyDoTuChoi).HasMaxLength(255);
-            entity.Property(e => e.MaBaoCao)
-                .HasMaxLength(5)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("maBaoCao");
             entity.Property(e => e.MaMonHoc)
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength()
-                .HasColumnName("maMonHoc");
+                .HasColumnName("MaMonHoc");
             entity.Property(e => e.MaNguoiDang)
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength()
-                .HasColumnName("maNguoiDang");
+                .HasColumnName("MaNguoiDang");
             entity.Property(e => e.MaNguoiDuyetKhoa)
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength()
-                .HasColumnName("maNguoiDuyetKhoa");
-            entity.Property(e => e.MaloaiTl)
+                .HasColumnName("MaNguoiDuyetKhoa");
+            entity.Property(e => e.MaLoaiTl)
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .IsFixedLength()
-                .HasColumnName("maloaiTL");
-            entity.Property(e => e.NamXb).HasColumnName("namXB");
+                .HasColumnName("MaLoaiTL");
+            entity.Property(e => e.NamXb).HasColumnName("NamXB");
             entity.Property(e => e.NgayDang)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
-                .HasColumnName("ngayDang");
+                .HasColumnName("NgayDang");
             entity.Property(e => e.Nxb)
                 .HasMaxLength(100)
                 .HasColumnName("NXB");
             entity.Property(e => e.TieuDe).HasMaxLength(255);
             entity.Property(e => e.TrangThaiDuyet)
                 .HasMaxLength(20)
-                .HasColumnName("trangThaiDuyet");
+                .HasDefaultValueSql("(N'Chờ duyệt')")
+                .HasColumnName("TrangThaiDuyet");
 
             entity.HasOne(d => d.MaMonHocNavigation).WithMany(p => p.TaiLieus)
                 .HasForeignKey(d => d.MaMonHoc)
-                .HasConstraintName("FK__TaiLieu__maMonHo__5812160E");
+                .HasConstraintName("FK__TaiLieu__MaMonHo__5812160E");
 
-            entity.HasOne(d => d.MaloaiTlNavigation).WithMany(p => p.TaiLieus)
-                .HasForeignKey(d => d.MaloaiTl)
-                .HasConstraintName("FK__TaiLieu__maloaiT__5AEE82B9");
+            entity.HasOne(d => d.MaLoaiTlNavigation).WithMany(p => p.TaiLieus)
+                .HasForeignKey(d => d.MaLoaiTl)
+                .HasConstraintName("FK__TaiLieu__MaLoaiT__5AEE82B9");
+
+            entity.HasOne(d => d.MaNguoiDangNavigation).WithMany(p => p.TaiLieuMaNguoiDangNavigations)
+                .HasForeignKey(d => d.MaNguoiDang)
+                .HasConstraintName("FK__TaiLieu__MaNguoi__59063A47");
+
+            entity.HasOne(d => d.MaNguoiDuyetKhoaNavigation).WithMany(p => p.TaiLieuMaNguoiDuyetKhoaNavigations)
+                .HasForeignKey(d => d.MaNguoiDuyetKhoa)
+                .HasConstraintName("FK__TaiLieu__MaNguoi__59FA5E80");
         });
 
         modelBuilder.Entity<ThongBao>(entity =>
@@ -546,17 +560,15 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
                 .HasConstraintName("FK__ThongBao__MaTL__5EBF139D");
         });
 
-        modelBuilder.Entity<TlyeuThich>(entity =>
+        modelBuilder.Entity<TLYeuThich>(entity =>
         {
-            entity.HasKey(e => e.MaTll).HasName("PK__TLYeuThi__3149CE19F4C31454");
+            entity.HasKey(e => e.MaYeuThich).HasName("PK__TLYeuThi__3149CE19F4C31454");
 
             entity.ToTable("TLYeuThich");
 
-            entity.Property(e => e.MaTll)
-                .HasMaxLength(5)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("MaTLL");
+            entity.Property(e => e.MaYeuThich)
+                .HasColumnName("MaYeuThich")
+                .ValueGeneratedOnAdd();
             entity.Property(e => e.MaNd)
                 .HasMaxLength(5)
                 .IsUnicode(false)
@@ -574,6 +586,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaTlNavigation).WithMany(p => p.TlyeuThiches)
                 .HasForeignKey(d => d.MaTl)
                 .HasConstraintName("FK__TLYeuThich__MaTL__6A30C649");
+            
+            entity.HasOne(d => d.MaNdNavigation).WithMany(p => p.TlyeuThiches)
+                .HasForeignKey(d => d.MaNd)
+                .HasConstraintName("FK__TLYeuThich__MaND__6B24EA82");
         });
 
         modelBuilder.Entity<VaiTro>(entity =>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HeThong_User.Models;
@@ -22,4 +22,5 @@ public partial class BaoCaoViPham
     public DateTime? NgayDuyet { get; set; }
 
     public virtual TaiLieu? MaTaiLieuNavigation { get; set; }
+    public virtual TaiKhoan? NguoiBaoCaoNavigation { get; set; }
 }

@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+@using Microsoft.AspNetCore.Http
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HeThong_Admin.styles.css" asp-append-version="true" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header class="header">
@@ -42,49 +44,123 @@
                     </div>
                 </div>
             </div>
-            <div class="user-avatar">
-                <div class="avatar">AQ</div>
-                <span class="user-name">Admin Quang</span>
+            @{
+                var adminName = Context.Session.GetString("AdminName") ?? "Quản trị viên";
+                var adminEmail = Context.Session.GetString("AdminEmail") ?? "";
+                var adminFaculty = Context.Session.GetString("AdminFaculty") ?? "";
+                var roleName = Context.Session.GetString("RoleName") ?? "Quản trị viên";
+                
+                var initials = "";
+                if (!string.IsNullOrEmpty(adminName))
+                {
+                    var parts = adminName.Split(' ');
+                    initials = parts.Length > 1 ? (parts[0][0].ToString() + parts[parts.Length - 1][0].ToString()).ToUpper() : adminName.Substring(0, Math.Min(2, adminName.Length)).ToUpper();
+                }
+            }
+            <div class="user-avatar-wrap">
+                <div class="user-avatar" onclick="toggleUserDropdown()">
+                    <div class="avatar">@initials</div>
+                    <span class="user-name">@adminName</span>
+                </div>
+                
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="user-dropdown-header">
+                        <div class="avatar-large">@initials</div>
+                        <div class="user-info">
+                            <div class="info-name">@adminName</div>
+                            <div class="info-role">@roleName</div>
+                        </div>
+                    </div>
+                    <div class="user-dropdown-body">
+                        @if (!string.IsNullOrEmpty(adminEmail))
+                        {
+                            <div class="info-item">
+                                <i class="info-icon">📧</i>
+                                <span>@adminEmail</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(adminFaculty))
+                        {
+                            <div class="info-item">
+                                <i class="info-icon">🏛️</i>
+                                <span>@adminFaculty</span>
+                            </div>
+                        }
+                        <div class="dropdown-divider"></div>
+                        <a href="@Url.Action("Logout", "Auth")" class="dropdown-item logout-item">
+                            <i class="info-icon">🚪</i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <div class="layout">
         <nav class="sidenav">
-            <div class="nav-group-label">TỔNG QUAN</div>
-            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"
-               href="@Url.Action("Index", "Home")">
-                <i class="nav-icon">📊</i> Xem thống kê
-            </a>
+            @{
+                var adminRole = Context.Session.GetString("AdminRole")?.Trim();
+            }
 
-            <div class="nav-group-label">QUẢN LÝ</div>
-            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "NguoiDung" ? "active" : "")"
-               href="@Url.Action("Index", "NguoiDung")">
-                <i class="nav-icon">👥</i> Quản lý người dùng
-            </a>
-            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DanhMuc" ? "active" : "")"
-               href="@Url.Action("Index", "DanhMuc")">
-                <i class="nav-icon">📁</i> Cập nhật danh mục
-            </a>
-            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DuyetTaiLieu" ? "active" : "")"
-               href="@Url.Action("Index", "DuyetTaiLieu")">
-                <i class="nav-icon">📄</i> Duyệt tài liệu
-            </a>
-            <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Bao Cao" ? "active" : "")"
-               href="@Url.Action("Index", "Bao Cao")">
-                <i class="nav-icon">⚠️</i> Báo cáo vi phạm
-            </a>
+            @if (adminRole == "VT001") // ADMIN
+            {
+                <div class="nav-group-label">QUẢN TRỊ HỆ THỐNG</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DanhMuc" ? "active" : "")"
+                   href="@Url.Action("Index", "DanhMuc")">
+                    <i class="nav-icon">📁</i> Cập nhật danh mục
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "NguoiDung" ? "active" : "")"
+                   href="@Url.Action("Index", "NguoiDung")">
+                    <i class="nav-icon">👥</i> Quản lý người dùng
+                </a>
 
-            <div class="nav-group-label">HỆ THỐNG</div>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">☁️</i> Sao lưu dữ liệu
-            </a>
-            <a class="nav-item" href="#">
-                <i class="nav-icon">📈</i> Bảng xếp hạng
-            </a>
+                <div class="nav-group-label">QUẢN LÝ TÀI LIỆU</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DuyetTaiLieu" ? "active" : "")"
+                   href="@Url.Action("Index", "DuyetTaiLieu")">
+                    <i class="nav-icon">📄</i> Duyệt tài liệu
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "BaoCao" ? "active" : "")"
+                   href="@Url.Action("Index", "BaoCao")">
+                    <i class="nav-icon">⚠️</i> Báo cáo vi phạm
+                </a>
+
+                <div class="nav-group-label">THỐNG KÊ & TỔNG QUAN</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")"
+                   href="@Url.Action("Index", "Home")">
+                    <i class="nav-icon">📊</i> Xem thống kê
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Rank" ? "active" : "")" 
+                   href="@Url.Action("Rank", "Home")">
+                    <i class="nav-icon">📈</i> Bảng xếp hạng
+                </a>
+
+                <div class="nav-group-label">CÔNG CỤ HỆ THỐNG</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Backup" ? "active" : "")" 
+                   href="@Url.Action("Backup", "Home")">
+                    <i class="nav-icon">☁️</i> Sao lưu dữ liệu
+                </a>
+            }
+            else if (adminRole == "VT004") // CÁN BỘ KHOA
+            {
+                <div class="nav-group-label">KIỂM DUYỆT</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ReviewCBK" ? "active" : "")"
+                   href="@Url.Action("ReviewCBK", "CanBoKhoa")">
+                    <i class="nav-icon">⚖️</i> Duyệt tài liệu khoa
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ReviewedCBK" ? "active" : "")"
+                   href="@Url.Action("ReviewedCBK", "CanBoKhoa")">
+                    <i class="nav-icon">📜</i> Lịch sử duyệt
+                </a>
+
+                <div class="nav-group-label">HỖ TRỢ</div>
+                <a class="nav-item" href="#">
+                    <i class="nav-icon">❓</i> Trợ giúp
+                </a>
+            }
 
             <div class="nav-divider"></div>
-            <a class="nav-item logout" href="@Url.Action("Logout", "Account")"> 
+            <a class="nav-item logout" href="@Url.Action("Logout", "Auth")"> 
                 <i class="nav-icon">🚪</i> Đăng xuất
             </a>
         </nav>
@@ -97,15 +173,77 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         function toggleNotif() {
-            document.getElementById("notifDropdown")?.classList.toggle("open");
+            const dropdown = document.getElementById("notifDropdown");
+            if (!dropdown) return;
+            
+            dropdown.classList.toggle("open");
+            
+            if (dropdown.classList.contains("open")) {
+                loadNotifications();
+            }
         }
+
+        async function loadNotifications() {
+            const list = document.querySelector(".notif-list");
+            if (!list) return;
+
+            try {
+                const res = await fetch('/Home/GetNotifications');
+                const result = await res.json();
+                
+                if (result.success && result.data) {
+                    const count = result.data.filter(n => n.trangThai === "Chưa đọc").length;
+                    document.getElementById("bellCount").textContent = count;
+                    document.getElementById("bellCount").style.display = count > 0 ? "flex" : "none";
+
+                    if (result.data.length === 0) {
+                        list.innerHTML = '<div class="p-4 text-center text-muted">Không có thông báo mới</div>';
+                    } else {
+                        list.innerHTML = result.data.map(n => `
+                            <div class="notif-item ${n.trangThai === 'Chưa đọc' ? 'unread' : ''}">
+                                ${n.trangThai === 'Chưa đọc' ? '<div class="notif-dot"></div>' : ''}
+                                <div class="notif-content">
+                                    <div class="notif-title">${n.tieuDe}</div>
+                                    <div class="notif-desc" style="font-size: 12px; color: #64748b; margin-top: 2px;">${n.noiDung}</div>
+                                    <div class="notif-time">${n.ngayTao}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi load thông báo:", e);
+            }
+        }
+
+        // Tự động load số lượng khi trang tải
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const res = await fetch('/Home/GetNotifications');
+                const result = await res.json();
+                if (result.success && result.data) {
+                    const count = result.data.filter(n => n.trangThai === "Chưa đọc").length;
+                    document.getElementById("bellCount").textContent = count;
+                    document.getElementById("bellCount").style.display = count > 0 ? "flex" : "none";
+                }
+            } catch(e) {}
+        });
 
         document.addEventListener("click", function (e) {
             const bellWrap = document.getElementById("bellWrap");
             if (bellWrap && !bellWrap.contains(e.target)) {
                 document.getElementById("notifDropdown")?.classList.remove("open");
             }
+
+            const userWrap = document.querySelector(".user-avatar-wrap");
+            if (userWrap && !userWrap.contains(e.target)) {
+                document.getElementById("userDropdown")?.classList.remove("open");
+            }
         });
+
+        function toggleUserDropdown() {
+            document.getElementById("userDropdown")?.classList.toggle("open");
+        }
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

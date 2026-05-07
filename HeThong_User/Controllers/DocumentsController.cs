@@ -46,7 +46,7 @@ namespace HeThong_User.Controllers
 
                 var taiLieuDaDang = await _context.TaiLieus
                     .Include(tl => tl.MaMonHocNavigation)
-                    .Include(tl => tl.MaloaiTlNavigation)
+                    .Include(tl => tl.MaLoaiTlNavigation)
                     .Where(tl => tl.MaNguoiDang == maNguoiDung)
                     .OrderByDescending(tl => tl.NgayDang)
                     .Select(tl => new
@@ -60,7 +60,7 @@ namespace HeThong_User.Controllers
                         ngayDang = tl.NgayDang,
                         trangThaiDuyet = tl.TrangThaiDuyet,
                         tenMonHoc = tl.MaMonHocNavigation != null ? tl.MaMonHocNavigation.TenMonHoc : null,
-                        loaiTaiLieu = tl.MaloaiTlNavigation != null ? tl.MaloaiTlNavigation.TenLtl : null,
+                        loaiTaiLieu = tl.MaLoaiTlNavigation != null ? tl.MaLoaiTlNavigation.TenLtl : null,
                         diemYeuCau = tl.DiemYeuCau
                     })
                     .ToListAsync();
@@ -90,16 +90,16 @@ namespace HeThong_User.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thông tin người dùng" });
                 }
 
-                var taiLieuDaLuu = await _context.TlyeuThiches
+                var taiLieuDaLuu = await _context.TLYeuThiches
                     .Include(tlt => tlt.MaTlNavigation)
                         .ThenInclude(tl => tl.MaMonHocNavigation)
                     .Include(tlt => tlt.MaTlNavigation)
-                        .ThenInclude(tl => tl.MaloaiTlNavigation)
+                        .ThenInclude(tl => tl.MaLoaiTlNavigation)
                     .Where(tlt => tlt.MaNd == maNguoiDung)
                     .OrderByDescending(tlt => tlt.ThoiGian)
                     .Select(tlt => new
                     {
-                        maTll = tlt.MaTll,
+                        maYeuThich = tlt.MaYeuThich,
                         thoiGianLuu = tlt.ThoiGian,
                         taiLieu = tlt.MaTlNavigation != null ? new
                         {
@@ -111,7 +111,7 @@ namespace HeThong_User.Controllers
                             luotTai = tlt.MaTlNavigation.LuotTai,
                             ngayDang = tlt.MaTlNavigation.NgayDang,
                             tenMonHoc = tlt.MaTlNavigation.MaMonHocNavigation != null ? tlt.MaTlNavigation.MaMonHocNavigation.TenMonHoc : null,
-                            loaiTaiLieu = tlt.MaTlNavigation.MaloaiTlNavigation != null ? tlt.MaTlNavigation.MaloaiTlNavigation.TenLtl : null,
+                            loaiTaiLieu = tlt.MaTlNavigation.MaLoaiTlNavigation != null ? tlt.MaTlNavigation.MaLoaiTlNavigation.TenLtl : null,
                             diemYeuCau = tlt.MaTlNavigation.DiemYeuCau
                         } : null
                     })
@@ -146,12 +146,12 @@ namespace HeThong_User.Controllers
                     .Include(ls => ls.MaTaiLieuNavigation)
                         .ThenInclude(tl => tl.MaMonHocNavigation)
                     .Include(ls => ls.MaTaiLieuNavigation)
-                        .ThenInclude(tl => tl.MaloaiTlNavigation)
+                        .ThenInclude(tl => tl.MaLoaiTlNavigation)
                     .Where(ls => ls.MaNd == maNguoiDung)
                     .OrderByDescending(ls => ls.NgayTai)
                     .Select(ls => new
                     {
-                        maDownTl = ls.MaDownTl,
+                        maDownTl = ls.MaDownTL,
                         ngayTai = ls.NgayTai,
                         taiLieu = ls.MaTaiLieuNavigation != null ? new
                         {
@@ -163,7 +163,7 @@ namespace HeThong_User.Controllers
                             luotTai = ls.MaTaiLieuNavigation.LuotTai,
                             ngayDang = ls.MaTaiLieuNavigation.NgayDang,
                             tenMonHoc = ls.MaTaiLieuNavigation.MaMonHocNavigation != null ? ls.MaTaiLieuNavigation.MaMonHocNavigation.TenMonHoc : null,
-                            loaiTaiLieu = ls.MaTaiLieuNavigation.MaloaiTlNavigation != null ? ls.MaTaiLieuNavigation.MaloaiTlNavigation.TenLtl : null,
+                            loaiTaiLieu = ls.MaTaiLieuNavigation.MaLoaiTlNavigation != null ? ls.MaTaiLieuNavigation.MaLoaiTlNavigation.TenLtl : null,
                             diemYeuCau = ls.MaTaiLieuNavigation.DiemYeuCau
                         } : null
                     })

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HeThong_User.Models;
 
 public partial class LichSuDiem
 {
-    public string MaLs { get; set; } = null!;
+    public int MaLS { get; set; }
 
     public string? MaSv { get; set; }
 
@@ -13,7 +13,7 @@ public partial class LichSuDiem
 
     public string? LyDo { get; set; }
 
-    public DateOnly? NgayThayDoi { get; set; }
+    public DateTime? NgayThayDoi { get; set; }
 
     public string? MaHk { get; set; }
 

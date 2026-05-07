@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using HeThong_User.Models;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +17,17 @@ builder.Services.AddControllersWithViews()
     });
 builder.Services.AddDbContext<HeThongChiaSeTaiLieu_V1>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".HeThongAdmin.Session"; // Tên riêng biệt để không bị trùng
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,10 +43,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.Run();

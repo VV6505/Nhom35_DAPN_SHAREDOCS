@@ -14,6 +14,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(2);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".HeThongUser.Session"; // Tên riêng biệt cho phía User
 });
 
 var app = builder.Build();

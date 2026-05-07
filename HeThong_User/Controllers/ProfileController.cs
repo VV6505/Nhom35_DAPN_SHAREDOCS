@@ -42,8 +42,8 @@ namespace HeThong_User.Controllers
 
                 var taiKhoan = await _context.TaiKhoans
                     .Include(tk => tk.MaVaiTroNavigation)
-                    .Include(tk => tk.SinhViens)
-                    .Include(tk => tk.GiangViens)
+                    .Include(tk => tk.MaSvNavigation)
+                    .Include(tk => tk.MaGvNavigation)
                     .FirstOrDefaultAsync(tk => tk.MaTk == maTaiKhoan);
 
                 if (taiKhoan == null)
@@ -53,9 +53,9 @@ namespace HeThong_User.Controllers
 
                 object userInfo = null;
 
-                if (taiKhoan.SinhViens.Any())
+                if (taiKhoan.MaSvNavigation != null)
                 {
-                    var sinhVien = taiKhoan.SinhViens.First();
+                    var sinhVien = taiKhoan.MaSvNavigation;
                     userInfo = new
                     {
                         maTaiKhoan = taiKhoan.MaTk,
@@ -73,9 +73,9 @@ namespace HeThong_User.Controllers
                         trangThai = sinhVien.TrangThaiSv
                     };
                 }
-                else if (taiKhoan.GiangViens.Any())
+                else if (taiKhoan.MaGvNavigation != null)
                 {
-                    var giangVien = taiKhoan.GiangViens.First();
+                    var giangVien = taiKhoan.MaGvNavigation;
                     userInfo = new
                     {
                         maTaiKhoan = taiKhoan.MaTk,
@@ -166,8 +166,8 @@ namespace HeThong_User.Controllers
                 }
 
                 var taiKhoan = await _context.TaiKhoans
-                    .Include(tk => tk.SinhViens)
-                    .Include(tk => tk.GiangViens)
+                    .Include(tk => tk.MaSvNavigation)
+                    .Include(tk => tk.MaGvNavigation)
                     .FirstOrDefaultAsync(tk => tk.MaTk == maTaiKhoan);
 
                 if (taiKhoan == null)
@@ -175,9 +175,9 @@ namespace HeThong_User.Controllers
                     return Json(new { success = false, message = "Không tìm thấy tài khoản" });
                 }
 
-                if (taiKhoan.SinhViens.Any())
+                if (taiKhoan.MaSvNavigation != null)
                 {
-                    var sinhVien = taiKhoan.SinhViens.First();
+                    var sinhVien = taiKhoan.MaSvNavigation;
                     
                     if (!string.IsNullOrEmpty(request.Email))
                         sinhVien.Email = request.Email;
@@ -188,9 +188,9 @@ namespace HeThong_User.Controllers
                     if (request.NgaySinh.HasValue)
                         sinhVien.NgaySinh = request.NgaySinh.Value;
                 }
-                else if (taiKhoan.GiangViens.Any())
+                else if (taiKhoan.MaGvNavigation != null)
                 {
-                    var giangVien = taiKhoan.GiangViens.First();
+                    var giangVien = taiKhoan.MaGvNavigation;
                     
                     if (!string.IsNullOrEmpty(request.Email))
                         giangVien.Email = request.Email;
@@ -270,7 +270,7 @@ namespace HeThong_User.Controllers
     {
         public string? Email { get; set; }
         public string? GioiTinh { get; set; }
-        public DateOnly? NgaySinh { get; set; }
+        public DateTime? NgaySinh { get; set; }
         public string? Sdt { get; set; }
     }
 

@@ -114,6 +114,10 @@
                    href="@Url.Action("Index", "NguoiDung")">
                     <i class="nav-icon">👥</i> Quản lý người dùng
                 </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "TieuChi" ? "active" : "")"
+                   href="@Url.Action("Index", "TieuChi")">
+                    <i class="nav-icon">⚙️</i> Thiết lập tiêu chí
+                </a>
 
                 <div class="nav-group-label">QUẢN LÝ TÀI LIỆU</div>
                 <a class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "DuyetTaiLieu" ? "active" : "")"

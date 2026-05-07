@@ -310,6 +310,15 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.Property(e => e.TenLtl)
                 .HasMaxLength(100)
                 .HasColumnName("TenLTL");
+            entity.Property(e => e.MaDq)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("MaDQ");
+
+            entity.HasOne(d => d.MaDqNavigation).WithMany(p => p.LoaiTaiLieus)
+                .HasForeignKey(d => d.MaDq)
+                .HasConstraintName("FK__LoaiTaiLi__MaDQ");
         });
 
         modelBuilder.Entity<Lop>(entity =>

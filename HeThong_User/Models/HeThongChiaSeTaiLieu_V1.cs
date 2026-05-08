@@ -180,7 +180,7 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
         {
             entity.HasKey(e => e.MaGv).HasName("PK__GiangVie__2725AEF3C2082FB4");
 
-            entity.ToTable("GiangVien");
+            entity.ToTable("GiangVien", tb => tb.HasTrigger("trg_CreateAccountForGV"));
 
             entity.Property(e => e.MaGv)
                 .HasMaxLength(5)
@@ -400,7 +400,7 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
         {
             entity.HasKey(e => e.MaSv).HasName("PK__SinhVien__2725081AD83304FE");
 
-            entity.ToTable("SinhVien");
+            entity.ToTable("SinhVien", tb => tb.HasTrigger("trg_CreateAccountForSV"));
 
             entity.Property(e => e.MaSv)
                 .HasMaxLength(5)

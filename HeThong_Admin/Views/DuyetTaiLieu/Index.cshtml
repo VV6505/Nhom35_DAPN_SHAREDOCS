@@ -18,9 +18,10 @@
             <form method="get" asp-action="Index" style="display:flex; gap:10px; align-items:center; width:100%;">
                 <select name="trangthai">
                     <option value="all" selected="@(trangthai == "all")">Tất cả trạng thái</option>
-                    <option value="ChoDuyet" selected="@(trangthai == "ChoDuyet")">Chờ duyệt</option>
-                    <option value="DaDuyet" selected="@(trangthai == "DaDuyet")">Đã duyệt</option>
-                    <option value="TuChoi" selected="@(trangthai == "TuChoi")">Từ chối</option>
+                    <option value="Chờ duyệt" selected="@(trangthai == "Chờ duyệt")">Chờ khoa duyệt</option>
+                    <option value="Chờ Admin duyệt" selected="@(trangthai == "Chờ Admin duyệt")">Chờ Admin duyệt</option>
+                    <option value="Đã duyệt" selected="@(trangthai == "Đã duyệt")">Đã duyệt</option>
+                    <option value="Từ chối" selected="@(trangthai == "Từ chối")">Từ chối</option>
                 </select>
                 <select name="khoa">
                     <option value="all" selected="@(khoaFilter == "all")">Tất cả khoa</option>
@@ -63,16 +64,18 @@
                         var monHoc = tl.MaMonHocNavigation?.TenMonHoc ?? "—";
                         var badgeClass = tl.TrangThaiDuyet switch
                         {
-                            "DaDuyet" => "approved",
-                            "ChoDuyet" => "pending",
-                            "TuChoi" => "rejected",
+                            "Đã duyệt" => "approved",
+                            "Chờ duyệt" => "pending",
+                            "Chờ Admin duyệt" => "pending-admin",
+                            "Từ chối" => "rejected",
                             _ => ""
                         };
                         var badgeText = tl.TrangThaiDuyet switch
                         {
-                            "DaDuyet" => "Đã duyệt",
-                            "ChoDuyet" => "Chờ duyệt",
-                            "TuChoi" => "Từ chối",
+                            "Đã duyệt" => "Đã duyệt",
+                            "Chờ duyệt" => "Chờ khoa duyệt",
+                            "Chờ Admin duyệt" => "Chờ Admin duyệt",
+                            "Từ chối" => "Từ chối",
                             _ => tl.TrangThaiDuyet ?? "—"
                         };
                         <tr>
@@ -83,7 +86,7 @@
                             <td><span class="badge @badgeClass">@badgeText</span></td>
                             <td>
                                 <div class="btn-group">
-                                    @if (tl.TrangThaiDuyet == "ChoDuyet")
+                                    @if (tl.TrangThaiDuyet == "Chờ duyệt" || tl.TrangThaiDuyet == "Chờ Admin duyệt")
                                     {
                                         <form method="post" asp-action="Duyet" asp-route-id="@tl.MaTaiLieu" style="display:inline;">
                                             <button type="submit" class="btn btn-success">Duyệt</button>
@@ -92,7 +95,7 @@
                                             <button type="submit" class="btn btn-danger">Từ chối</button>
                                         </form>
                                     }
-                                    else if (tl.TrangThaiDuyet == "DaDuyet")
+                                    else if (tl.TrangThaiDuyet == "Đã duyệt")
                                     {
                                         <form method="post" asp-action="Xoa" asp-route-id="@tl.MaTaiLieu" style="display:inline;"
                                               onsubmit="return confirm('Xóa tài liệu này?');">

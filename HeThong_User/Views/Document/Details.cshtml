@@ -1,0 +1,144 @@
+@model HeThong_User.Models.TaiLieu
+
+@{
+    ViewData["Title"] = Model.TieuDe + " - Chi tiết tài liệu";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<div class="main-content py-4">
+    <div class="container-fluid px-4">
+        <div class="page-head mb-4 text-start">
+            <h1 class="fw-bold mb-1">Chi tiết tài liệu</h1>
+            <p class="text-muted small">
+                Môn: @(Model.MaMonHocNavigation?.TenMonHoc ?? "N/A") 
+                <i class="fa-solid fa-chevron-right mx-1"></i> Khoa: @ViewBag.TenKhoa
+            </p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 col-md-12">
+                <div class="card shadow-sm border-0 mb-4 p-4" style="border-radius: 12px;">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                        <span class="badge bg-danger rounded-pill text-uppercase p-2">@Model.LoaiFile</span>
+                        @{
+                            var trangThai = Model.TrangThaiDuyet ?? "Chờ duyệt";
+                            var badgeColor = trangThai == "Đã duyệt" ? "success" : (trangThai == "Từ chối" ? "danger" : "warning");
+                            var badgeIcon  = trangThai == "Đã duyệt" ? "✅" : (trangThai == "Từ chối" ? "❌" : "⏳");
+                        }
+                        <span class="badge bg-@badgeColor rounded-pill p-2">@badgeIcon @trangThai</span>
+                    </div>
+                    <h2 class="fw-bold mb-4">@Model.TieuDe</h2>
+
+                    <div class="text-muted mb-4">
+                        <p>@Model.MoTa</p>
+                    </div>
+
+                    <div class="card bg-light border-0 mb-4 p-4" style="border-radius: 12px;">
+                        <h5 class="fw-bold mb-2">Chi tiết nội dung</h5>
+                        <p class="mb-0 text-muted small">
+                            Tài liệu này thuộc ngành <strong>@ViewBag.TenNganh</strong>, môn <strong>@(Model.MaMonHocNavigation?.TenMonHoc)</strong>. 
+                            Được đăng tải chính thức vào ngày @Model.NgayDang?.ToString("dd/MM/yyyy").
+                        </p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-4"><button class="btn btn-outline-secondary w-100 rounded-pill small"><i class="fa-regular fa-star me-1"></i> Lưu</button></div>
+                        <div class="col-4"><button class="btn btn-outline-secondary w-100 rounded-pill small"><i class="fa-regular fa-heart me-1"></i> Thích</button></div>
+                        <div class="col-4"><button class="btn btn-outline-secondary w-100 rounded-pill small"><i class="fa-solid fa-share me-1"></i> Gửi</button></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3">Đánh giá & Phản hồi</h5>
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="text-warning me-3">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                            </div>
+                            <span class="fw-bold">4.0/5</span>
+                            <span class="ms-3 text-muted small">(@Model.DanhGia.Count lượt)</span>
+                        </div>
+
+                        <div class="comment-list">
+                            @foreach (var bl in ViewBag.Comments)
+                            {
+                                <div class="d-flex mb-3">
+                                    <div class="avatar-sm bg-info text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-2" style="width:35px; height:35px; font-size:12px;">
+                                        @(bl.TenSv?.Substring(0,1).ToUpper())
+                                    </div>
+                                    <div class="bg-light rounded-3 p-2 flex-grow-1">
+                                        <div class="fw-bold" style="font-size:12px;">@bl.TenSv</div>
+                                        <p class="mb-0 small">@bl.NoiDung</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-12">
+                <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="fw-bold mb-0">Thông tin tài liệu</h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="uploader-info d-flex align-items-center p-3 mb-3 bg-light rounded-3">
+                            <div class="avatar-lg bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width:50px; height:50px; font-size:18px;">
+                                @(ViewBag.NguoiDang?.TenSv?.Substring(0,1).ToUpper())
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark small">@ViewBag.NguoiDang?.TenSv</div>
+                                <div class="text-muted" style="font-size:11px;">Người đăng tài liệu</div>
+                            </div>
+                        </div>
+
+                        <div class="download-stats border-top pt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Lượt tải:</span>
+                                <span class="fw-bold small">@Model.LuotTai</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Điểm yêu cầu:</span>
+                                <span class="fw-bold text-warning small">⭐ @Model.DiemYeuCau điểm</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="text-muted small">Định dạng:</span>
+                                <span class="badge bg-secondary rounded-pill text-uppercase">@Model.LoaiFile</span>
+                            </div>
+
+                            <a href="@Url.Action("Download", "Document", new { id = Model.MaTaiLieu })" class="btn btn-success w-100 py-3 rounded-pill fw-bold border-0 shadow-sm mb-3">
+                                <i class="fa-solid fa-download me-2"></i>TẢI XUỐNG NGAY
+                            </a>
+
+                            <div class="text-center">
+                                <a href="#" class="text-decoration-none small d-block mb-2"><i class="fa-regular fa-heart me-1"></i>Lưu vào yêu thích</a>
+                                <hr class="my-2 opacity-25">
+                                @* Tìm nút Báo cáo ở Sidebar trang chi tiết và sửa href *@
+<a href="/Document/RecentReports?id=@Model.MaTaiLieu" class="text-danger small text-decoration-none">
+    <i class="fa-solid fa-flag me-1"></i>Báo cáo vi phạm tài liệu này
+</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-sm, .avatar-lg { flex-shrink: 0; }
+    .card { transition: 0.3s; }
+    .btn-success { background-color: #198754 !important; }
+    .btn-success:hover { background-color: #157347 !important; transform: translateY(-2px); }
+
+    /* Tăng cỡ chữ theo yêu cầu */
+    body { font-size: 16px; }
+    .page-head h1 { font-size: 2.2rem !important; }
+    .page-head p { font-size: 1.1rem !important; }
+    .card h2 { font-size: 2rem !important; }
+    .card h5 { font-size: 1.3rem !important; }
+    .text-muted p { font-size: 1.1rem !important; }
+    .download-stats span, .download-stats b { font-size: 1rem !important; }
+    .comment-list p { font-size: 1rem !important; }
+</style>

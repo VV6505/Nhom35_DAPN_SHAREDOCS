@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HeThong_User.Models;
@@ -11,7 +11,7 @@ public partial class GiangVien
 
     public string? GioiTinh { get; set; }
 
-    public DateOnly? NgaySinh { get; set; }
+    public DateTime? NgaySinh { get; set; }
 
     public string? Email { get; set; }
 
@@ -19,11 +19,11 @@ public partial class GiangVien
 
     public string? HocVi { get; set; }
 
-    public string? MaKhoa { get; set; }
+    public string LoaiGv { get; set; } = null!;
 
-    public string? MaTk { get; set; }
+    public string? MaKhoa { get; set; }
 
     public virtual Khoa? MaKhoaNavigation { get; set; }
 
-    public virtual TaiKhoan? MaTkNavigation { get; set; }
+    public virtual ICollection<TaiKhoan> TaiKhoans { get; set; } = new List<TaiKhoan>();
 }

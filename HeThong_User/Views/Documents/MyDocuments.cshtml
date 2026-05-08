@@ -279,15 +279,15 @@
     </div>
 
     <div class="documents-tabs">
-        <button class="documents-tab active" onclick="switchTab('uploads')">
+        <button class="documents-tab active" onclick="switchTab('uploads', event)">
             📤 Đã đăng
             <span class="documents-tab-badge" id="uploadsCount">0</span>
         </button>
-        <button class="documents-tab" onclick="switchTab('saved')">
+        <button class="documents-tab" onclick="switchTab('saved', event)">
             ❤️ Đã lưu
             <span class="documents-tab-badge" id="savedCount">0</span>
         </button>
-        <button class="documents-tab" onclick="switchTab('downloads')">
+        <button class="documents-tab" onclick="switchTab('downloads', event)">
             📥 Đã tải xuống
             <span class="documents-tab-badge" id="downloadsCount">0</span>
         </button>
@@ -578,14 +578,18 @@
         return mb.toFixed(1) + ' MB';
     }
 
-    function switchTab(tab) {
+    function switchTab(tab, e) {
         currentTab = tab;
+        const target = e?.target || window.event?.target;
 
         // Update tab buttons
         document.querySelectorAll('.documents-tab').forEach(btn => {
             btn.classList.remove('active');
         });
-        event.target.closest('.documents-tab').classList.add('active');
+        
+        if (target) {
+            target.closest('.documents-tab').classList.add('active');
+        }
 
         // Update content
         document.querySelectorAll('.documents-content').forEach(content => {
@@ -595,8 +599,6 @@
     }
 
     function viewDocument(maTaiLieu) {
-        // TODO: Navigate to document detail page
-        console.log('View document:', maTaiLieu);
-        alert('Chức năng xem chi tiết tài liệu sẽ được phát triển sau');
+        window.location.href = '/Document/Details/' + maTaiLieu;
     }
 </script>

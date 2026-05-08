@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HeThong_User.Models;
@@ -20,6 +20,8 @@ public partial class ThongBao
     public DateTime? NgayTao { get; set; }
 
     public string? MaTl { get; set; }
+
+    public virtual TaiKhoan? MaNguoiNhanNavigation { get; set; }
 
     public virtual TaiLieu? MaTlNavigation { get; set; }
 }

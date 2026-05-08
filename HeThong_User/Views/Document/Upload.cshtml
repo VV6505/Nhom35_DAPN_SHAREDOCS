@@ -1,0 +1,409 @@
+@model HeThong_User.Models.TaiLieu
+
+@{
+    ViewData["Title"] = "Đăng tải tài liệu - DocShare";
+}
+
+<style>
+    .upload-container { display: grid; grid-template-columns: 1fr 350px; gap: 24px; margin-top: 20px; padding-bottom: 60px; }
+    .upload-main { display: grid; gap: 24px; }
+    .section-card { background: #fff; border-radius: 20px; border: 1px solid rgba(15,23,42,.08); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .section-title { font-weight: 800; font-size: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #2563eb; }
+    .section-title span { background: #2563eb; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    
+    .drop-zone { 
+        border: 2px dashed #2563eb; 
+        background: rgba(37,99,235,.03); 
+        border-radius: 16px; 
+        padding: 40px 20px; 
+        text-align: center; 
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .drop-zone:hover, .drop-zone.drag { background: rgba(37,99,235,.08); border-color: #1d4ed8; }
+    .drop-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+    
+    .field-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .field-full { grid-column: span 2; }
+    
+    .label { display: block; font-weight: 700; color: #334155; margin-bottom: 8px; font-size: 1.1rem; }
+    .input, .select, .textarea { width: 100%; padding: 14px 18px; border-radius: 14px; border: 1.5px solid #e2e8f0; font-size: 1.1rem; transition: all 0.2s ease; background: #fff; color: #1e293b; }
+    .input:focus, .select:focus, .textarea:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+    
+    .mon-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .mon-tag { background: rgba(15,23,42,.05); border-radius: 8px; padding: 6px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .mon-tag button { border: none; background: transparent; cursor: pointer; color: #ef4444; font-size: 16px; line-height: 1; }
+
+    .sidebar-info { display: grid; gap: 20px; position: sticky; top: 20px; height: fit-content; }
+    .info-card { background: #fff; border-radius: 20px; border: 1px solid rgba(15,23,42,.08); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .info-title { font-weight: 800; font-size: 15px; margin-bottom: 12px; display: block; }
+    .info-list { margin: 0; padding-left: 18px; font-size: 13px; color: #64748b; line-height: 1.6; }
+    
+    .upload-progress { height: 6px; background: rgba(15,23,42,.06); border-radius: 99px; overflow: hidden; display: none; margin-top: 10px; }
+    .upload-progress-bar { height: 100%; background: #2563eb; width: 0%; transition: width .3s; }
+    
+    .help { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+
+    @@media (max-width: 992px) {
+        .upload-container { grid-template-columns: 1fr; }
+        .sidebar-info { position: static; }
+    }
+</style>
+
+<div class="container py-4">
+    <form id="uploadForm" asp-action="Upload" method="post" enctype="multipart/form-data">
+        <div class="upload-container">
+            <div class="upload-main">
+                <!-- Step 1: File -->
+                <section class="section-card">
+                    <div class="section-title"><span>01</span> Tải lên tệp tài liệu</div>
+                    <div id="drop" class="drop-zone">
+                        <span class="drop-icon">📄</span>
+                        <div style="font-weight: 800; font-size: 16px;">Kéo thả tệp hoặc chọn từ máy tính</div>
+                        <div class="help">Hỗ trợ PDF, DOCX, PPTX. Tối đa 50MB.</div>
+                        <input id="file" name="fileUpload" type="file" accept=".pdf,.docx,.pptx" style="display: none;" required />
+                        <div id="fileInfo" style="margin-top: 12px; font-weight: 700; color: #2563eb;"></div>
+                    <div id="fileValidation" style="display:none; margin-top: 10px; padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;"></div>
+                    </div>
+                    <div id="progressWrap" class="upload-progress">
+                        <div id="bar" class="upload-progress-bar"></div>
+                    </div>
+                </section>
+
+                <!-- Step 2: Basic Info -->
+                <section class="section-card">
+                    <div class="section-title"><span>02</span> Thông tin cơ bản</div>
+                    <div class="field-group">
+                        <div class="field field-full">
+                            <label class="label">Tiêu đề tài liệu <span style="color:#ef4444">*</span></label>
+                            <input id="inputTieuDe" asp-for="TieuDe" class="input" 
+                                   placeholder="Ví dụ: Cấu trúc dữ liệu - Giáo trình" 
+                                   required autocomplete="off" />
+                            <div id="tieude-hint" class="help" style="margin-top: 6px; line-height: 1.6;">
+                                📌 Định dạng: <strong>[Tên môn] - [Loại tài liệu]</strong> <em style="color:#94a3b8">(- [Mô tả] tuỳ chọn)</em><br/>
+                                — Hợp lệ: <em style="color:#16a34a">"Cấu trúc dữ liệu - Giáo trình"</em><br/>
+                                — Hợp lệ: <em style="color:#16a34a">"Lập trình Java - Slide - Tuần 3"</em><br/>
+                                — Sai: <em style="color:#ef4444">"giao trinh ctdl"</em> (thiếu dấu " - ")
+                            </div>
+                            <div id="tieude-status" style="margin-top:8px; font-size:13px; font-weight:700; display:none;"></div>
+                        </div>
+                        <div class="field">
+                            <label class="label">Định dạng tệp</label>
+                            <select asp-for="LoaiFile" class="select">
+                                <option value="PDF">PDF</option>
+                                <option value="DOCX">DOCX</option>
+                                <option value="PPTX">PPTX</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Loại tài liệu</label>
+                            <select id="selLoaiTL" asp-for="MaLoaiTl" class="select" required>
+                                <option value="">-- Chọn loại tài liệu --</option>
+                                @foreach (var item in ViewBag.MaLoaiTl as List<HeThong_User.Models.LoaiTaiLieu>)
+                                {
+                                    <option value="@item.MaLtl">@item.TenLtl</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Điểm yêu cầu</label>
+                            <input asp-for="DiemYeuCau" class="input" type="number" readonly style="background: #f8fafc; font-weight: 800; color: #2563eb;" />
+                            <div class="help">Hệ thống tự động gán theo loại tài liệu.</div>
+                        </div>
+                        <div class="field field-full">
+                            <label class="label">Mô tả chi tiết</label>
+                            <textarea asp-for="MoTa" class="textarea" rows="4" placeholder="Mô tả tóm tắt nội dung tài liệu..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Step 3: Metadata -->
+                <section class="section-card">
+                    <div class="section-title"><span>03</span> Thông tin xuất bản & Phân loại</div>
+                    <div class="field-group">
+                        <div class="field">
+                            <label class="label">Nhà xuất bản</label>
+                            <input asp-for="Nxb" class="input" placeholder="vd: NXB Giáo dục, Tác giả tự do" />
+                        </div>
+                        <div class="field">
+                            <label class="label">Năm xuất bản</label>
+                            <input asp-for="NamXb" class="input" type="number" min="1990" max="2100" placeholder="2024" />
+                        </div>
+                        <div class="field">
+                            <label class="label">Khoa</label>
+                            <select id="selKhoa" class="select">
+                                <option value="">-- Chọn khoa --</option>
+                                @foreach (var item in ViewBag.Khoas as List<HeThong_User.Models.Khoa>)
+                                {
+                                    <option value="@item.MaKhoa">@item.TenKhoa</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Ngành</label>
+                            <select id="selNganh" class="select" disabled>
+                                <option value="">-- Chọn ngành --</option>
+                            </select>
+                        </div>
+                        <div class="field field-full">
+                            <label class="label">Môn học</label>
+                            <select id="selMonHoc" asp-for="MaMonHoc" class="select" disabled required>
+                                <option value="">-- Chọn môn học --</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <div style="display:flex; justify-content:flex-end; gap: 12px; margin-top: 10px;">
+                    <a class="btn btn-light" asp-action="Index" style="border-radius: 12px; padding: 10px 24px;">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 12px; padding: 10px 32px; font-weight: 700;">Đăng tải tài liệu</button>
+                </div>
+            </div>
+
+            <aside class="sidebar-info">
+                <div class="info-card" style="border-color: #f59e0b; background: #fffbeb;">
+                    <span class="info-title" style="color: #b45309;">📋 Quy tắc đặt tên tiêu đề</span>
+                    <div style="font-size: 13px; color: #78350f; line-height: 1.7;">
+                        <b>Bắt buộc:</b> dùng dấu <code style="background:#fef3c7">" - "</code> phân cách<br/>
+                        <code style="background:#fef3c7; padding:4px 8px; border-radius:6px; display:block; margin: 6px 0; font-size:12px;">[Tên môn] - [Loại] <span style="opacity:.5">- [Mô tả] (tuỳ chọn)</span></code>
+                        <b>✅ Hợp lệ:</b>
+                        <ul style="margin: 4px 0; padding-left: 16px;">
+                            <li><em>Cấu trúc dữ liệu - Giáo trình</em></li>
+                            <li><em>Lập trình Java - Slide - Tuần 3</em></li>
+                            <li><em>Mạng máy tính - Đề cương - HK2 2024</em></li>
+                        </ul>
+                        <b>❌ Không hợp lệ:</b>
+                        <ul style="margin: 4px 0; padding-left: 16px;">
+                            <li><em>giao trinh ctdl</em> (thiếu " - ")</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card" id="fileNamePreviewCard" style="display:none; border-color: #10b981; background: #f0fdf4;">
+                    <span class="info-title" style="color: #065f46;">✅ Tên file sẽ được lưu</span>
+                    <div id="fileNamePreview" style="font-size: 12px; color: #047857; font-family: monospace; word-break: break-all; background: #dcfce7; padding: 8px 12px; border-radius: 8px; margin-top: 8px;"></div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 6px;">Hệ thống tự động tạo tên file theo quy tắc chuẩn.</div>
+                </div>
+
+                <div class="info-card">
+                    <span class="info-title">💡 Gợi ý nhanh</span>
+                    <ul class="info-list">
+                        <li>Chọn đúng danh mục để tài liệu dễ tiếp cận hơn.</li>
+                        <li>Mô tả chi tiết giúp tăng 40% khả năng được duyệt.</li>
+                        <li>Hệ thống tự động kiểm tra trùng lặp để đảm bảo chất lượng.</li>
+                    </ul>
+                </div>
+                <div class="info-card" style="background: rgba(37,99,235,.03); border-color: rgba(37,99,235,.1);">
+                    <span class="info-title" style="color: #2563eb;">🚀 Quy trình duyệt</span>
+                    <ul class="info-list" style="color: #1e293b;">
+                        <li><b>01. Đăng tải:</b> SV/GV hoàn tất form.</li>
+                        <li><b>02. Kiểm duyệt:</b> Cán bộ khoa xem xét.</li>
+                        <li><b>03. Công khai:</b> Admin xác nhận cuối cùng.</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // ============================================================
+            // PREVIEW TÊN FILE CHUẨN HÓA REAL-TIME
+            // ============================================================
+            function slugify(text) {
+                var map = {
+                    'à':   'a','á':   'a','ạ':   'a','ả':   'a','ã':   'a',
+                    'â':   'a','ầ':   'a','ấ':   'a','ậ':   'a','ẩ':   'a','ẫ':   'a',
+                    'ă':   'a','ằ':   'a','ắ':   'a','ặ':   'a','ẳ':   'a','ẵ':   'a',
+                    'è':   'e','é':   'e','ẹ':   'e','ẻ':   'e','ẽ':   'e',
+                    'ê':   'e','ề':   'e','ế':   'e','ệ':   'e','ể':   'e','ễ':   'e',
+                    'ì':   'i','í':   'i','ị':   'i','ỉ':   'i','ĩ':   'i',
+                    'ò':   'o','ó':   'o','ọ':   'o','ỏ':   'o','õ':   'o',
+                    'ô':   'o','ồ':   'o','ố':   'o','ộ':   'o','ổ':   'o','ỗ':   'o',
+                    'ơ':   'o','ờ':   'o','ớ':   'o','ợ':   'o','ở':   'o','ỡ':   'o',
+                    'ù':   'u','ú':   'u','ụ':   'u','ủ':   'u','ũ':   'u',
+                    'ư':   'u','ừ':   'u','ứ':   'u','ự':   'u','ử':   'u','ữ':   'u',
+                    'ỳ':   'y','ý':   'y','ỵ':   'y','ỷ':   'y','ỹ':   'y',
+                    'đ':   'd'
+                };
+                text = text.replace(/[\u0080-\uFFFF]/g, function(ch) { return map[ch] || ch; });
+                var words = text.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+                var slug  = words.map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join('');
+                return slug.substring(0, 30);
+            }
+
+            function updateFileNamePreview() {
+                var tieuDe  = $('#inputTieuDe').val().trim();
+                var maLoai  = $('#selLoaiTL').val() || 'LTL';
+                var maMon   = $('#selMonHoc').val() || 'MON';
+                var fileEl  = document.getElementById('file');
+                var ext     = '';
+                if (fileEl && fileEl.files && fileEl.files[0]) {
+                    ext = fileEl.files[0].name.split('.').pop().toUpperCase();
+                }
+
+                // Validate tiêu đề real-time
+                var statusEl = document.getElementById('tieude-status');
+                if (tieuDe.length < 10) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color   = '#ef4444';
+                    statusEl.textContent   = '❌ Tiêu đề quá ngắn (cần ít nhất 10 ký tự)';
+                    $('#fileNamePreviewCard').hide();
+                    return;
+                }
+                if (!tieuDe.includes(' - ')) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color   = '#ef4444';
+                    statusEl.textContent   = '❌ Thiếu dấu phân cách " - " giữa các phần';
+                    $('#fileNamePreviewCard').hide();
+                    return;
+                }
+                statusEl.style.display = 'block';
+                statusEl.style.color   = '#16a34a';
+                statusEl.textContent   = '✅ Tiêu đề hợp lệ!';
+
+                // Hiển thị preview tên file
+                if (ext) {
+                    var slug     = slugify(tieuDe);
+                    var year     = new Date().getFullYear();
+                    var preview  = maMon + '_' + maLoai + '_' + slug + '_ND_' + year + '.' + ext;
+                    document.getElementById('fileNamePreview').textContent = preview;
+                    $('#fileNamePreviewCard').show();
+                }
+            }
+
+            // Bắt sự kiện để cập nhật preview
+            $('#inputTieuDe, #selLoaiTL, #selMonHoc').on('input change', updateFileNamePreview);
+            document.getElementById('file').addEventListener('change', updateFileNamePreview);
+
+            // Cascade Khoa -> Nganh -> Mon
+            $('#selKhoa').change(function () {
+                var maKhoa = $(this).val();
+                if (maKhoa) {
+                    $.getJSON('/Document/GetNganhsByKhoa', { maKhoa: maKhoa }, function (data) {
+                        var items = '<option value="">-- Chọn ngành --</option>';
+                        $.each(data, function (i, nganh) {
+                            items += "<option value='" + nganh.maNganh + "'>" + nganh.tenNganh + "</option>";
+                        });
+                        $('#selNganh').html(items).prop('disabled', false);
+                        $('#selMonHoc').html('<option value="">-- Chọn môn học --</option>').prop('disabled', true);
+                    });
+                } else {
+                    $('#selNganh').html('<option value="">-- Chọn ngành --</option>').prop('disabled', true);
+                    $('#selMonHoc').html('<option value="">-- Chọn môn học --</option>').prop('disabled', true);
+                }
+            });
+
+            $('#selNganh').change(function () {
+                var maNganh = $(this).val();
+                if (maNganh) {
+                    $.getJSON('/Document/GetMonHocsByNganh', { maNganh: maNganh }, function (data) {
+                        var items = '<option value="">-- Chọn môn học --</option>';
+                        $.each(data, function (i, mon) {
+                            items += "<option value='" + mon.maMonHoc + "'>" + mon.tenMonHoc + "</option>";
+                        });
+                        $('#selMonHoc').html(items).prop('disabled', false);
+                    });
+                } else {
+                    $('#selMonHoc').html('<option value="">-- Chọn môn học --</option>').prop('disabled', true);
+                }
+            });
+
+            // Auto points based on document type
+            $('#selLoaiTL').change(function () {
+                var maLtl = $(this).val();
+                if (maLtl) {
+                    $.getJSON('/Document/GetDiemByLoaiTL', { maLtl: maLtl }, function (diem) {
+                        $('#DiemYeuCau').val(diem);
+                    });
+                } else {
+                    $('#DiemYeuCau').val(0);
+                }
+            });
+
+            // Drag & Drop
+            const drop = document.getElementById("drop");
+            const fileInput = document.getElementById("file");
+            const fileInfo = document.getElementById("fileInfo");
+
+            drop.addEventListener("click", () => fileInput.click());
+            
+            $(drop).on("dragenter dragover", function(e) {
+                e.preventDefault();
+                $(this).addClass("drag");
+            }).on("dragleave drop", function(e) {
+                e.preventDefault();
+                $(this).removeClass("drag");
+            });
+
+            drop.addEventListener("drop", (e) => {
+                const f = e.dataTransfer.files?.[0];
+                if (f) {
+                    fileInput.files = e.dataTransfer.files;
+                    updateFileInfo(f);
+                    updateFileNamePreview();
+                }
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                const f = e.target.files?.[0];
+                if (f) { updateFileInfo(f); updateFileNamePreview(); }
+            });
+
+            function updateFileInfo(f) {
+                const sizeMB = Math.round((f.size / 1024 / 1024) * 10) / 10;
+                fileInfo.textContent = `📁 ${f.name} (${sizeMB} MB)`;
+
+                // Luôn tự động cập nhật tiêu đề từ tên file mới (bỏ đuôi mở rộng)
+                var baseName = f.name.replace(/\.[^.]+$/, ''); // bỏ .pdf .docx ...
+                $('#inputTieuDe').val(baseName);
+
+                // Kiểm tra quy tắc ngay lập tức
+                var titleToCheck = baseName.trim();
+                var validEl = document.getElementById('fileValidation');
+                if (titleToCheck.length < 10) {
+                    validEl.style.display = 'block';
+                    validEl.style.background = '#fef2f2';
+                    validEl.style.color = '#dc2626';
+                    validEl.style.border = '1px solid #fecaca';
+                    validEl.innerHTML = '❌ <b>Tiêu đề quá ngắn!</b> Cần ít nhất 10 ký tự. Hãy sửa lại ô Tiêu đề bên dưới.';
+                } else if (!titleToCheck.includes(' - ')) {
+                    validEl.style.display = 'block';
+                    validEl.style.background = '#fff7ed';
+                    validEl.style.color = '#c2410c';
+                    validEl.style.border = '1px solid #fed7aa';
+                    validEl.innerHTML = '⚠️ <b>Tiêu đề chưa đúng định dạng!</b> Phải có dấu " - " giữa các phần.<br/><small style="opacity:.8">Ví dụ: <em>Cấu trúc dữ liệu - Giáo trình</em></small>';
+                } else {
+                    validEl.style.display = 'block';
+                    validEl.style.background = '#f0fdf4';
+                    validEl.style.color = '#16a34a';
+                    validEl.style.border = '1px solid #bbf7d0';
+                    validEl.innerHTML = '✅ <b>File và tiêu đề hợp lệ!</b> Bạn có thể tiếp tục điền thông tin và đăng tải.';
+                }
+
+                // Kích hoạt lại preview và validate real-time
+                updateFileNamePreview();
+            }
+
+            // Client-side validate trước khi submit
+            $('#uploadForm').submit(function(e) {
+                var tieuDe = $('#inputTieuDe').val().trim();
+                if (tieuDe.length < 10 || !tieuDe.includes(' - ')) {
+                    e.preventDefault();
+                    alert('⚠️ Tiêu đề không hợp lệ!\n\nĐịnh dạng: [Tên môn] - [Loại tài liệu] - [Mô tả]\nVí dụ: "Cấu trúc dữ liệu - Giáo trình - Chương 1 đến 5"');
+                    return false;
+                }
+                $('#progressWrap').show();
+                var bar = $('#bar');
+                var width = 0;
+                var interval = setInterval(function() {
+                    width += 5;
+                    bar.css('width', width + '%');
+                    if (width >= 90) clearInterval(interval);
+                }, 100);
+            });
+        });
+    </script>
+}

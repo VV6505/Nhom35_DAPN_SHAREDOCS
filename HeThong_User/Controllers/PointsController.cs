@@ -52,7 +52,7 @@ namespace HeThong_User.Controllers
                 var lichSuDiem = await _context.LichSuDiems
                     .Include(ls => ls.MaHkNavigation)
                     .Where(ls => ls.MaSv == maNguoiDung)
-                    .OrderByDescending(ls => ls.MaLs)
+                    .OrderByDescending(ls => ls.MaLS)
                     .ToListAsync();
 
                 // Tính điểm sau thay đổi cho từng bản ghi
@@ -63,7 +63,7 @@ namespace HeThong_User.Controllers
                 {
                     lichSuDiemResult.Add(new
                     {
-                        maLs = ls.MaLs,
+                        maLs = ls.MaLS,
                         diemThayDoi = ls.SoDiemThayDoi,
                         diemSauThayDoi = tongDiemHienTai, // Điểm hiện tại
                         lyDo = ls.LyDo,

@@ -13,22 +13,50 @@ namespace HeThong_Admin.Controllers
             _context = context;
         }
 
+        // [GET] Danh sách phê duyệt: Lấy danh sách tài liệu cần duyệt dựa trên vai trò (Admin thấy bài của toàn trường, CBK thấy bài của khoa).
         public async Task<IActionResult> Index(string? trangthai, string? khoa, string? search)
         {
+            var adminId = HttpContext.Session.GetString("AdminId");
+            var adminRole = HttpContext.Session.GetString("AdminRole");
+
             var query = _context.TaiLieus
                 .Include(t => t.MaMonHocNavigation)
                     .ThenInclude(m => m!.MaNganhNavigation)
                         .ThenInclude(n => n!.MaKhoaNavigation)
                 .AsQueryable();
 
-            // Lọc trạng thái
+            // Phân quyền hiển thị: Cán bộ khoa chỉ thấy bài của khoa mình, Admin thấy bài từ khoa gửi lên
+            if (adminRole == "VT004") 
+            {
+                var tk = await _context.TaiKhoans.Include(x => x.MaGvNavigation).FirstOrDefaultAsync(x => x.MaTk == adminId);
+                var maKhoaCBK = tk?.MaGvNavigation?.MaKhoa;
+
+                if (!string.IsNullOrEmpty(maKhoaCBK))
+                {
+                    // Lọc bài thuộc khoa của cán bộ đang đăng nhập
+                    query = query.Where(t => t.MaMonHocNavigation != null
+                        && t.MaMonHocNavigation.MaNganhNavigation != null
+                        && t.MaMonHocNavigation.MaNganhNavigation.MaKhoa == maKhoaCBK);
+
+                    if (string.IsNullOrEmpty(trangthai) || trangthai == "all")
+                        query = query.Where(t => t.TrangThaiDuyet == "Chờ duyệt");
+                }
+            }
+            else if (adminRole == "VT001") 
+            {
+                // Admin xử lý nốt các bài đã qua vòng duyệt của Khoa hoặc bài tự do
+                if (string.IsNullOrEmpty(trangthai) || trangthai == "all")
+                    query = query.Where(t => t.TrangThaiDuyet == "Chờ Admin duyệt" || t.TrangThaiDuyet == "Chờ duyệt");
+            }
+
+            // Lọc trạng thái (nếu chọn cụ thể)
             if (!string.IsNullOrEmpty(trangthai) && trangthai != "all")
             {
                 query = query.Where(t => t.TrangThaiDuyet == trangthai);
             }
 
-            // Lọc theo khoa
-            if (!string.IsNullOrEmpty(khoa) && khoa != "all")
+            // Lọc theo khoa (dành cho Admin)
+            if (adminRole == "VT001" && !string.IsNullOrEmpty(khoa) && khoa != "all")
             {
                 query = query.Where(t => t.MaMonHocNavigation != null
                     && t.MaMonHocNavigation.MaNganhNavigation != null
@@ -65,25 +93,75 @@ namespace HeThong_Admin.Controllers
             return View(taiLieus);
         }
 
+        // [POST] Phê duyệt: Chuyển trạng thái tài liệu thành "Chờ Admin duyệt" (nếu là CBK) hoặc "Đã duyệt" (nếu là Admin).
         [HttpPost]
         public async Task<IActionResult> Duyet(string id)
         {
+            var adminRole = HttpContext.Session.GetString("AdminRole");
             var tl = await _context.TaiLieus.FindAsync(id);
+            
             if (tl != null)
             {
-                tl.TrangThaiDuyet = "DaDuyet";
+                // Nếu Khoa duyệt -> Đẩy lên cho Admin xác nhận. Nếu Admin duyệt -> Cho phép hiển thị luôn.
+                if (adminRole == "VT004") 
+                {
+                    tl.TrangThaiDuyet = "Chờ Admin duyệt";
+                }
+                else if (adminRole == "VT001") 
+                {
+                    tl.TrangThaiDuyet = "Đã duyệt";
+                }
+                // GỬI THÔNG BÁO CHO NGƯỜI ĐĂNG
+                var lastTB_AP = _context.ThongBaos.OrderByDescending(t => t.MaTb).FirstOrDefault();
+                var nextTB_AP = lastTB_AP != null 
+                    ? "TB" + (int.Parse(lastTB_AP.MaTb.Substring(2)) + 1).ToString("D3") 
+                    : "TB001";
+
+                var thongBao = new ThongBao
+                {
+                    MaTb = nextTB_AP,
+                    TieuDe = "Kết quả phê duyệt",
+                    NoiDung = adminRole == "VT004" 
+                        ? $"Tài liệu '{tl.TieuDe}' đã được Khoa duyệt, chờ Admin xác nhận."
+                        : $"Chúc mừng! Tài liệu '{tl.TieuDe}' của bạn đã được phê duyệt.",
+                    NgayTao = DateTime.Now,
+                    TrangThai = "Chưa đọc",
+                    MaNguoiNhan = tl.MaNguoiDang
+                };
+                _context.ThongBaos.Add(thongBao);
+
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");
         }
 
+        // [POST] Từ chối: Chuyển trạng thái tài liệu thành "Từ chối" và lưu lại lý do để người đăng được biết.
         [HttpPost]
-        public async Task<IActionResult> TuChoi(string id)
+        public async Task<IActionResult> TuChoi(string id, string lyDo)
         {
             var tl = await _context.TaiLieus.FindAsync(id);
             if (tl != null)
             {
-                tl.TrangThaiDuyet = "TuChoi";
+                tl.TrangThaiDuyet = "Từ chối";
+                tl.LyDoTuChoi = lyDo;
+
+                // GỬI THÔNG BÁO CHO NGƯỜI ĐĂNG
+                var lastTB_RJ = _context.ThongBaos.OrderByDescending(t => t.MaTb).FirstOrDefault();
+                var nextTB_RJ = lastTB_RJ != null 
+                    ? "TB" + (int.Parse(lastTB_RJ.MaTb.Substring(2)) + 1).ToString("D3") 
+                    : "TB001";
+
+                var thongBao = new ThongBao
+                {
+                    MaTb = nextTB_RJ,
+                    TieuDe = "Tài liệu bị từ chối",
+                    NoiDung = $"Rất tiếc, tài liệu '{tl.TieuDe}' bị từ chối. Lý do: {lyDo}",
+                    NgayTao = DateTime.Now,
+                    TrangThai = "Chưa đọc",
+                    MaNguoiNhan = tl.MaNguoiDang
+                };
+                _context.ThongBaos.Add(thongBao);
+
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");

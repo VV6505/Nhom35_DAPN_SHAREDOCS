@@ -15,7 +15,7 @@ namespace HeThong_User.Controllers
             _logger = logger;
         }
 
-        // GET: Auth/Login
+        // [GET] Trang đăng nhập: Hiển thị giao diện cho người dùng nhập tài khoản/mật khẩu.
         public IActionResult Login()
         {
             // Nếu đã đăng nhập, chuyển về trang chủ
@@ -30,7 +30,7 @@ namespace HeThong_User.Controllers
         // POST: Auth/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string username, string password)
+        public async Task<IActionResult> Login(string? username, string? password)
         {
             _logger.LogInformation($"=== BẮT ĐẦU ĐĂNG NHẬP ===");
             _logger.LogInformation($"Username nhận được: '{username}'");
@@ -46,27 +46,28 @@ namespace HeThong_User.Controllers
             try
             {
                 // Trim khoảng trắng thừa
-                username = username?.Trim();
-                password = password?.Trim();
+                var trimmedUsername = username?.Trim();
                 
                 // Tìm tài khoản
-                _logger.LogInformation($"Đang tìm tài khoản với username: '{username}'");
+                _logger.LogInformation($"Đang tìm tài khoản với username: '{trimmedUsername}'");
                 
                 var taiKhoan = await _context.TaiKhoans
                     .Include(tk => tk.MaVaiTroNavigation)
-                    .Include(tk => tk.SinhViens)
-                    .Include(tk => tk.GiangViens)
-                    .FirstOrDefaultAsync(tk => tk.TenTk.Trim() == username);
+                    .Include(tk => tk.MaSvNavigation)
+                    .Include(tk => tk.MaGvNavigation)
+                    .FirstOrDefaultAsync(tk => trimmedUsername != null && tk.MaTk.Trim() == trimmedUsername);
 
                 if (taiKhoan == null)
                 {
                     _logger.LogWarning($"KHÔNG TÌM THẤY tài khoản với username: '{username}'");
+                    var errorMsg = "Tên đăng nhập không tồn tại!";
                     
-                    // Debug: Xem tất cả username trong database
-                    var allUsernames = await _context.TaiKhoans.Select(t => t.TenTk).ToListAsync();
-                    _logger.LogInformation($"Danh sách username trong DB: {string.Join(", ", allUsernames)}");
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = errorMsg });
+                    }
                     
-                    TempData["ErrorMessage"] = "Tên đăng nhập không tồn tại!";
+                    TempData["ErrorMessage"] = errorMsg;
                     return View();
                 }
 
@@ -82,7 +83,14 @@ namespace HeThong_User.Controllers
                 if (dbPassword != password)
                 {
                     _logger.LogWarning($"MẬT KHẨU SAI! DB='{dbPassword}' vs Input='{password}'");
-                    TempData["ErrorMessage"] = "Mật khẩu không đúng!";
+                    var errorMsg = "Mật khẩu không đúng!";
+                    
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = errorMsg });
+                    }
+                    
+                    TempData["ErrorMessage"] = errorMsg;
                     return View();
                 }
 
@@ -91,56 +99,61 @@ namespace HeThong_User.Controllers
                 // Kiểm tra trạng thái tài khoản
                 _logger.LogInformation($"Trạng thái tài khoản: '{taiKhoan.TrangThai}'");
                 
-                // Kiểm tra nếu tài khoản bị khóa (chỉ chặn các trạng thái khóa rõ ràng)
-                if (taiKhoan.TrangThai != null && 
-                    (taiKhoan.TrangThai.Contains("khóa", StringComparison.OrdinalIgnoreCase) || 
-                     taiKhoan.TrangThai.Contains("Tạm khóa", StringComparison.OrdinalIgnoreCase) ||
-                     taiKhoan.TrangThai.Contains("Vô hiệu", StringComparison.OrdinalIgnoreCase)))
+                // Kiểm tra nếu tài khoản bị khóa (0 = Khóa, 1 = Hoạt động)
+                if (taiKhoan.TrangThai == 0)
                 {
-                    _logger.LogWarning($"Tài khoản bị khóa: {taiKhoan.TrangThai}");
-                    TempData["ErrorMessage"] = "Tài khoản đã bị khóa!";
+                    _logger.LogWarning($"Tài khoản bị khóa: {taiKhoan.MaTk}");
+                    var lockedMsg = "Tài khoản bị tạm khóa. Vui lòng liên hệ Admin để biết thêm thông tin!";
+                    
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = lockedMsg });
+                    }
+                    
+                    TempData["ErrorMessage"] = lockedMsg;
                     return View();
                 }
 
-                // Lưu thông tin vào session
+                // BƯỚC 4: Thiết lập các thông tin cơ bản vào Session để sử dụng toàn hệ thống
                 _logger.LogInformation("Đang lưu thông tin vào Session...");
-                HttpContext.Session.SetString("MaTaiKhoan", taiKhoan.MaTk);
-                HttpContext.Session.SetString("TenTaiKhoan", taiKhoan.TenTk);
+                HttpContext.Session.SetString("MaTaiKhoan", taiKhoan.MaTk ?? "");
+                HttpContext.Session.SetString("TenTaiKhoan", taiKhoan.TenTk ?? "");
                 HttpContext.Session.SetString("MaVaiTro", taiKhoan.MaVaiTro ?? "");
                 HttpContext.Session.SetString("TenVaiTro", taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "");
 
                 // Tạo object để trả về cho client (lưu vào localStorage)
-                object userInfo = new
+                dynamic userInfo = new
                 {
-                    MaTaiKhoan = taiKhoan.MaTk,
-                    TenTaiKhoan = taiKhoan.TenTk,
-                    MaVaiTro = taiKhoan.MaVaiTro,
-                    TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro,
+                    MaTaiKhoan = taiKhoan.MaTk ?? "",
+                    TenTaiKhoan = taiKhoan.TenTk ?? "",
+                    MaVaiTro = taiKhoan.MaVaiTro ?? "",
+                    TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "Người dùng",
                     LoaiNguoiDung = "",
                     MaNguoiDung = "",
-                    TenNguoiDung = "",
+                    TenNguoiDung = taiKhoan.TenTk ?? "Người dùng",
                     Email = "",
                     DiemTichLuy = 0
                 };
 
                 // Kiểm tra vai trò và lưu thông tin tương ứng
-                if (taiKhoan.SinhViens.Any())
+                if (taiKhoan.MaSvNavigation != null)
                 {
-                    var sinhVien = taiKhoan.SinhViens.First();
+                    var sinhVien = taiKhoan.MaSvNavigation;
                     _logger.LogInformation($"Đăng nhập với vai trò SINH VIÊN: {sinhVien.MaSv} - {sinhVien.TenSv}");
-                    HttpContext.Session.SetString("MaSinhVien", sinhVien.MaSv);
-                    HttpContext.Session.SetString("TenNguoiDung", sinhVien.TenSv);
+                    HttpContext.Session.SetString("MaSinhVien", sinhVien.MaSv ?? "");
+                    HttpContext.Session.SetString("TenNguoiDung", sinhVien.TenSv ?? "");
                     HttpContext.Session.SetString("LoaiNguoiDung", "SinhVien");
+                    HttpContext.Session.SetString("DiemTichLuy", (sinhVien.DiemTichLuy ?? 0).ToString());
                     
                     userInfo = new
                     {
-                        MaTaiKhoan = taiKhoan.MaTk,
-                        TenTaiKhoan = taiKhoan.TenTk,
-                        MaVaiTro = taiKhoan.MaVaiTro,
-                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro,
+                        MaTaiKhoan = taiKhoan.MaTk ?? "",
+                        TenTaiKhoan = taiKhoan.TenTk ?? "",
+                        MaVaiTro = taiKhoan.MaVaiTro ?? "",
+                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "Sinh viên",
                         LoaiNguoiDung = "SinhVien",
-                        MaNguoiDung = sinhVien.MaSv,
-                        TenNguoiDung = sinhVien.TenSv,
+                        MaNguoiDung = sinhVien.MaSv ?? "",
+                        TenNguoiDung = sinhVien.TenSv ?? "Sinh viên",
                         Email = sinhVien.Email ?? "",
                         NgaySinh = sinhVien.NgaySinh?.ToString("dd/MM/yyyy") ?? "",
                         GioiTinh = sinhVien.GioiTinh ?? "",
@@ -149,26 +162,25 @@ namespace HeThong_User.Controllers
                         TrangThaiSv = sinhVien.TrangThaiSv ?? ""
                     };
                 }
-                else if (taiKhoan.GiangViens.Any())
+                else if (taiKhoan.MaGvNavigation != null)
                 {
-                    var giangVien = taiKhoan.GiangViens.First();
+                    var giangVien = taiKhoan.MaGvNavigation;
                     _logger.LogInformation($"Đăng nhập với vai trò GIẢNG VIÊN: {giangVien.MaGv} - {giangVien.TenGv}");
-                    HttpContext.Session.SetString("MaGiangVien", giangVien.MaGv);
-                    HttpContext.Session.SetString("TenNguoiDung", giangVien.TenGv);
+                    HttpContext.Session.SetString("MaGiangVien", giangVien.MaGv ?? "");
+                    HttpContext.Session.SetString("TenNguoiDung", giangVien.TenGv ?? "");
                     HttpContext.Session.SetString("LoaiNguoiDung", "GiangVien");
+                    HttpContext.Session.SetString("DiemTichLuy", "0");
                     
                     userInfo = new
                     {
-                        MaTaiKhoan = taiKhoan.MaTk,
-                        TenTaiKhoan = taiKhoan.TenTk,
-                        MaVaiTro = taiKhoan.MaVaiTro,
-                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro,
+                        MaTaiKhoan = taiKhoan.MaTk ?? "",
+                        TenTaiKhoan = taiKhoan.TenTk ?? "",
+                        MaVaiTro = taiKhoan.MaVaiTro ?? "",
+                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "Giảng viên",
                         LoaiNguoiDung = "GiangVien",
-                        MaNguoiDung = giangVien.MaGv,
-                        TenNguoiDung = giangVien.TenGv,
+                        MaNguoiDung = giangVien.MaGv ?? "",
+                        TenNguoiDung = giangVien.TenGv ?? "Giảng viên",
                         Email = giangVien.Email ?? "",
-                        NgaySinh = giangVien.NgaySinh?.ToString("dd/MM/yyyy") ?? "",
-                        GioiTinh = giangVien.GioiTinh ?? "",
                         Sdt = giangVien.Sdt ?? "",
                         DiemTichLuy = 0,
                         MaKhoa = giangVien.MaKhoa ?? ""
@@ -181,25 +193,30 @@ namespace HeThong_User.Controllers
 
                 _logger.LogInformation("=== ĐĂNG NHẬP THÀNH CÔNG ===");
                 
-                // Kiểm tra nếu là AJAX request thì trả về JSON
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
                     return Json(new { success = true, message = "Đăng nhập thành công!", userInfo });
                 }
                 
                 TempData["SuccessMessage"] = "Đăng nhập thành công!";
-                TempData["UserInfo"] = System.Text.Json.JsonSerializer.Serialize(userInfo);
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "LỖI KHI ĐĂNG NHẬP");
-                TempData["ErrorMessage"] = "Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại!";
+                var errorMessage = $"Lỗi hệ thống: {ex.Message}";
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = errorMessage });
+                }
+                
+                TempData["ErrorMessage"] = errorMessage;
                 return View();
             }
         }
 
-        // GET: Auth/Logout
+        // [GET] Đăng xuất: Xóa toàn bộ Session và chuyển hướng người dùng về trang đăng nhập.
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
@@ -208,132 +225,16 @@ namespace HeThong_User.Controllers
             return RedirectToAction("Login");
         }
 
-        // GET: Auth/Register
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        // POST: Auth/Register
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(string username, string password, string confirmPassword, 
-            string tenSv, string email, string maSv)
-        {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || 
-                string.IsNullOrEmpty(tenSv) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(maSv))
-            {
-                TempData["ErrorMessage"] = "Vui lòng điền đầy đủ thông tin!";
-                return View();
-            }
-
-            if (password != confirmPassword)
-            {
-                TempData["ErrorMessage"] = "Mật khẩu xác nhận không khớp!";
-                return View();
-            }
-
-            if (password.Length < 6)
-            {
-                TempData["ErrorMessage"] = "Mật khẩu phải có ít nhất 6 ký tự!";
-                return View();
-            }
-
-            try
-            {
-                // Kiểm tra tên đăng nhập đã tồn tại
-                var existingAccount = await _context.TaiKhoans
-                    .FirstOrDefaultAsync(tk => tk.TenTk == username);
-
-                if (existingAccount != null)
-                {
-                    TempData["ErrorMessage"] = "Tên đăng nhập đã tồn tại!";
-                    return View();
-                }
-
-                // Kiểm tra mã sinh viên đã tồn tại
-                var existingSinhVien = await _context.SinhViens
-                    .FirstOrDefaultAsync(sv => sv.MaSv == maSv);
-
-                if (existingSinhVien != null)
-                {
-                    TempData["ErrorMessage"] = "Mã sinh viên đã được đăng ký!";
-                    return View();
-                }
-
-                // Lấy vai trò sinh viên
-                var vaiTroSinhVien = await _context.VaiTros
-                    .FirstOrDefaultAsync(vt => vt.TenVaiTro == "Sinh viên");
-
-                if (vaiTroSinhVien == null)
-                {
-                    TempData["ErrorMessage"] = "Không tìm thấy vai trò sinh viên trong hệ thống!";
-                    return View();
-                }
-
-                // Tạo tài khoản mới
-                var taiKhoan = new TaiKhoan
-                {
-                    MaTk = GenerateMaTaiKhoan(),
-                    TenTk = username,
-                    MatKhau = password, // TODO: Hash password
-                    MaVaiTro = vaiTroSinhVien.MaVaiTro,
-                    TrangThai = "Hoạt động"
-                };
-
-                _context.TaiKhoans.Add(taiKhoan);
-                await _context.SaveChangesAsync();
-
-                // Tạo sinh viên mới
-                var sinhVien = new SinhVien
-                {
-                    MaSv = maSv,
-                    TenSv = tenSv,
-                    Email = email,
-                    MaTk = taiKhoan.MaTk,
-                    DiemTichLuy = 0,
-                    TrangThaiSv = "Đang học"
-                };
-
-                _context.SinhViens.Add(sinhVien);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
-                return RedirectToAction("Login");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi đăng ký");
-                TempData["ErrorMessage"] = "Có lỗi xảy ra khi đăng ký. Vui lòng thử lại!";
-                return View();
-            }
-        }
-
-        private string GenerateMaTaiKhoan()
-        {
-            var lastTaiKhoan = _context.TaiKhoans
-                .OrderByDescending(tk => tk.MaTk)
-                .FirstOrDefault();
-
-            if (lastTaiKhoan == null)
-            {
-                return "TK001";
-            }
-
-            var lastNumber = int.Parse(lastTaiKhoan.MaTk.Substring(2));
-            return $"TK{(lastNumber + 1):D3}";
-        }
-
         // GET: Auth/TestAccount?username=sv_mai
-        public async Task<IActionResult> TestAccount(string username)
+        public async Task<IActionResult> TestAccount(string? username)
         {
             _logger.LogInformation($"=== TEST TÀI KHOẢN: {username} ===");
             
             // Lấy tất cả tài khoản
             var allAccounts = await _context.TaiKhoans
                 .Include(tk => tk.MaVaiTroNavigation)
-                .Include(tk => tk.SinhViens)
-                .Include(tk => tk.GiangViens)
+                .Include(tk => tk.MaSvNavigation)
+                .Include(tk => tk.MaGvNavigation)
                 .ToListAsync();
             
             _logger.LogInformation($"Tổng số tài khoản: {allAccounts.Count}");
@@ -344,7 +245,7 @@ namespace HeThong_User.Controllers
             }
             
             // Tìm tài khoản cụ thể
-            var taiKhoan = allAccounts.FirstOrDefault(tk => tk.TenTk.Trim() == username?.Trim());
+            var taiKhoan = allAccounts.FirstOrDefault(tk => tk.MaTk.Trim() == username?.Trim());
             
             if (taiKhoan == null)
             {
@@ -358,12 +259,12 @@ namespace HeThong_User.Controllers
             _logger.LogInformation($"- MatKhau: '{taiKhoan.MatKhau}'");
             _logger.LogInformation($"- TrangThai: '{taiKhoan.TrangThai}'");
             _logger.LogInformation($"- MaVaiTro: '{taiKhoan.MaVaiTro}'");
-            _logger.LogInformation($"- Số SinhVien: {taiKhoan.SinhViens.Count}");
-            _logger.LogInformation($"- Số GiangVien: {taiKhoan.GiangViens.Count}");
+            _logger.LogInformation($"- SinhVien liên kết: {taiKhoan.MaSv ?? "None"}");
+            _logger.LogInformation($"- GiangVien liên kết: {taiKhoan.MaGv ?? "None"}");
             
-            if (taiKhoan.SinhViens.Any())
+            if (taiKhoan.MaSvNavigation != null)
             {
-                var sv = taiKhoan.SinhViens.First();
+                var sv = taiKhoan.MaSvNavigation;
                 _logger.LogInformation($"- SinhVien: MaSV={sv.MaSv}, TenSV={sv.TenSv}");
             }
             
@@ -371,7 +272,7 @@ namespace HeThong_User.Controllers
         }
 
         // GET: Auth/TestLogin?username=sv_mai&password=123456
-        public async Task<IActionResult> TestLogin(string username, string password)
+        public async Task<IActionResult> TestLogin(string? username, string? password)
         {
             _logger.LogInformation($"=== TEST ĐĂNG NHẬP: {username} / {password} ===");
             
@@ -384,9 +285,9 @@ namespace HeThong_User.Controllers
                 // Tìm tài khoản
                 var taiKhoan = await _context.TaiKhoans
                     .Include(tk => tk.MaVaiTroNavigation)
-                    .Include(tk => tk.SinhViens)
-                    .Include(tk => tk.GiangViens)
-                    .FirstOrDefaultAsync(tk => tk.TenTk.Trim() == username);
+                    .Include(tk => tk.MaSvNavigation)
+                    .Include(tk => tk.MaGvNavigation)
+                    .FirstOrDefaultAsync(tk => tk.MaTk.Trim() == username);
 
                 if (taiKhoan == null)
                 {
@@ -409,9 +310,7 @@ namespace HeThong_User.Controllers
                 _logger.LogInformation($"Trạng thái: '{taiKhoan.TrangThai}'");
                 
                 // Kiểm tra trạng thái
-                if (taiKhoan.TrangThai != null && 
-                    (taiKhoan.TrangThai.Contains("khóa", StringComparison.OrdinalIgnoreCase) || 
-                     taiKhoan.TrangThai.Contains("Tạm khóa", StringComparison.OrdinalIgnoreCase)))
+                if (taiKhoan.TrangThai == 0)
                 {
                     _logger.LogWarning($"Tài khoản bị khóa");
                     return Content("Tài khoản bị khóa");
@@ -419,9 +318,9 @@ namespace HeThong_User.Controllers
 
                 _logger.LogInformation("Trạng thái OK!");
                 
-                if (taiKhoan.SinhViens.Any())
+                if (taiKhoan.MaSvNavigation != null)
                 {
-                    var sv = taiKhoan.SinhViens.First();
+                    var sv = taiKhoan.MaSvNavigation;
                     _logger.LogInformation($"SinhVien: {sv.MaSv} - {sv.TenSv}");
                     return Content($"ĐĂNG NHẬP THÀNH CÔNG! Sinh viên: {sv.TenSv}");
                 }

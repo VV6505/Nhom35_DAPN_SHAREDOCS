@@ -1,146 +1,269 @@
-﻿@model HeThong_User.Models.TaiLieu
+@model HeThong_User.Models.TaiLieu
 
 @{
-    ViewData["Title"] = "Đăng tải tài liệu";
+    ViewData["Title"] = "Đăng tải tài liệu - DocShare";
 }
 
-@* Nhúng Font Awesome nếu file Layout chưa có *@
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-<div class="main-content py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="upload-header mb-4">
-                    <h2 class="fw-bold mb-1">Đăng tải tài liệu</h2>
-                    <p class="text-muted">Chia sẻ tài liệu với cộng đồng</p>
-                </div>
-
-                <div class="card shadow-sm border-0 p-4" style="border-radius: 15px;">
-                    <form asp-action="Upload" method="post" enctype="multipart/form-data">
-                        
-                        <div class="form-group mb-3">
-                            <label class="form-label fw-bold small text-secondary">Tên tài liệu</label>
-                            <input asp-for="TieuDe" class="form-control bg-light border-0 py-2" placeholder="Nhập tên tài liệu..." required />
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-secondary">Môn học</label>
-                                <select asp-for="MaMonHoc" class="form-select bg-light border-0 py-2">
-                                    <option value="">Chọn môn</option>
-                                    @foreach (var item in ViewBag.MaMonHoc)
-                                    {
-                                        <option value="@item.MaMonHoc">@item.TenMonHoc</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-secondary">Loại</label>
-                                <select asp-for="MaloaiTl" class="form-select bg-light border-0 py-2">
-                                    <option value="">Giáo trình</option>
-                                    @foreach (var item in ViewBag.MaloaiTl)
-                                    {
-                                        <option value="@item.MaLtl">@item.TenLtl</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-bold small text-secondary">Mô tả</label>
-                            <textarea asp-for="MoTa" class="form-control bg-light border-0 py-2" rows="4" placeholder="Mô tả ngắn gọn..."></textarea>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-bold small text-secondary">Tải file</label>
-                            <div class="upload-zone text-center p-5 border-dashed rounded-3 position-relative" id="drop-zone">
-                                <input type="file" name="fileUpload" id="fileInput" class="position-absolute inset-0 opacity-0 w-100 h-100" style="cursor:pointer;" required />
-                                <div class="upload-content">
-                                    <i class="fa-solid fa-paperclip fa-2x mb-3 text-dark"></i>
-                                    <p class="mb-1 text-secondary">Kéo thả hoặc <span class="text-primary fw-bold">chọn file</span></p>
-                                    <p class="text-muted small mb-0">PDF, DOCX, PPTX - Tối đa 25MB</p>
-                                    <div id="file-name" class="mt-2 fw-bold text-success small"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill" style="background-color: #004d73; border: none;">
-                            Đăng tải tài liệu
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    /* CSS Tùy chỉnh để giống ảnh mẫu */
-    .border-dashed {
-        border: 2px dashed #ccc;
-        background-color: #fafafa;
-        transition: 0.3s;
+    .upload-container { display: grid; grid-template-columns: 1fr 350px; gap: 24px; margin-top: 20px; padding-bottom: 60px; }
+    .upload-main { display: grid; gap: 24px; }
+    .section-card { background: #fff; border-radius: 20px; border: 1px solid rgba(15,23,42,.08); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .section-title { font-weight: 800; font-size: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #2563eb; }
+    .section-title span { background: #2563eb; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    
+    .drop-zone { 
+        border: 2px dashed #2563eb; 
+        background: rgba(37,99,235,.03); 
+        border-radius: 16px; 
+        padding: 40px 20px; 
+        text-align: center; 
+        cursor: pointer;
+        transition: all .2s;
     }
+    .drop-zone:hover, .drop-zone.drag { background: rgba(37,99,235,.08); border-color: #1d4ed8; }
+    .drop-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+    
+    .field-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .field-full { grid-column: span 2; }
+    
+    .label { display: block; font-weight: 700; color: #334155; margin-bottom: 8px; font-size: 1.1rem; }
+    .input, .select, .textarea { width: 100%; padding: 14px 18px; border-radius: 14px; border: 1.5px solid #e2e8f0; font-size: 1.1rem; transition: all 0.2s ease; background: #fff; color: #1e293b; }
+    .input:focus, .select:focus, .textarea:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+    
+    .mon-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .mon-tag { background: rgba(15,23,42,.05); border-radius: 8px; padding: 6px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .mon-tag button { border: none; background: transparent; cursor: pointer; color: #ef4444; font-size: 16px; line-height: 1; }
 
-        .border-dashed:hover {
-            border-color: #004d73;
-            background-color: #f0f7ff;
-        }
+    .sidebar-info { display: grid; gap: 20px; position: sticky; top: 20px; height: fit-content; }
+    .info-card { background: #fff; border-radius: 20px; border: 1px solid rgba(15,23,42,.08); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .info-title { font-weight: 800; font-size: 15px; margin-bottom: 12px; display: block; }
+    .info-list { margin: 0; padding-left: 18px; font-size: 13px; color: #64748b; line-height: 1.6; }
+    
+    .upload-progress { height: 6px; background: rgba(15,23,42,.06); border-radius: 99px; overflow: hidden; display: none; margin-top: 10px; }
+    .upload-progress-bar { height: 100%; background: #2563eb; width: 0%; transition: width .3s; }
+    
+    .help { font-size: 12px; color: #94a3b8; margin-top: 4px; }
 
-    .form-control::placeholder, .form-select {
-        font-size: 14px;
-        color: #999;
-    }
-
-        .form-control:focus, .form-select:focus {
-            background-color: #fff !important;
-            box-shadow: 0 0 0 3px rgba(0,77,115,0.1);
-        }
-
-    .upload-zone i {
-        transform: rotate(45deg);
+    @@media (max-width: 992px) {
+        .upload-container { grid-template-columns: 1fr; }
+        .sidebar-info { position: static; }
     }
 </style>
+
+<div class="container py-4">
+    <form id="uploadForm" asp-action="Upload" method="post" enctype="multipart/form-data">
+        <div class="upload-container">
+            <div class="upload-main">
+                <!-- Step 1: File -->
+                <section class="section-card">
+                    <div class="section-title"><span>01</span> Tải lên tệp tài liệu</div>
+                    <div id="drop" class="drop-zone">
+                        <span class="drop-icon">📄</span>
+                        <div style="font-weight: 800; font-size: 16px;">Kéo thả tệp hoặc chọn từ máy tính</div>
+                        <div class="help">Hỗ trợ PDF, DOCX, PPTX. Tối đa 50MB.</div>
+                        <input id="file" name="fileUpload" type="file" accept=".pdf,.docx,.pptx" style="display: none;" required />
+                        <div id="fileInfo" style="margin-top: 12px; font-weight: 700; color: #2563eb;"></div>
+                    </div>
+                    <div id="progressWrap" class="upload-progress">
+                        <div id="bar" class="upload-progress-bar"></div>
+                    </div>
+                </section>
+
+                <!-- Step 2: Basic Info -->
+                <section class="section-card">
+                    <div class="section-title"><span>02</span> Thông tin cơ bản</div>
+                    <div class="field-group">
+                        <div class="field field-full">
+                            <label class="label">Tiêu đề tài liệu</label>
+                            <input asp-for="TieuDe" class="input" placeholder="Ví dụ: Giáo trình Lập trình C nâng cao" required />
+                        </div>
+                        <div class="field">
+                            <label class="label">Định dạng tệp</label>
+                            <select asp-for="LoaiFile" class="select">
+                                <option value="PDF">PDF</option>
+                                <option value="DOCX">DOCX</option>
+                                <option value="PPTX">PPTX</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Loại tài liệu</label>
+                            <select id="selLoaiTL" asp-for="MaLoaiTl" class="select" required>
+                                <option value="">-- Chọn loại tài liệu --</option>
+                                @foreach (var item in ViewBag.MaLoaiTl as List<HeThong_User.Models.LoaiTaiLieu>)
+                                {
+                                    <option value="@item.MaLtl">@item.TenLtl</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Điểm yêu cầu</label>
+                            <input asp-for="DiemYeuCau" class="input" type="number" readonly style="background: #f8fafc; font-weight: 800; color: #2563eb;" />
+                            <div class="help">Hệ thống tự động gán theo loại tài liệu.</div>
+                        </div>
+                        <div class="field field-full">
+                            <label class="label">Mô tả chi tiết</label>
+                            <textarea asp-for="MoTa" class="textarea" rows="4" placeholder="Mô tả tóm tắt nội dung tài liệu..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Step 3: Metadata -->
+                <section class="section-card">
+                    <div class="section-title"><span>03</span> Thông tin xuất bản & Phân loại</div>
+                    <div class="field-group">
+                        <div class="field">
+                            <label class="label">Nhà xuất bản</label>
+                            <input asp-for="Nxb" class="input" placeholder="vd: NXB Giáo dục, Tác giả tự do" />
+                        </div>
+                        <div class="field">
+                            <label class="label">Năm xuất bản</label>
+                            <input asp-for="NamXb" class="input" type="number" min="1990" max="2100" placeholder="2024" />
+                        </div>
+                        <div class="field">
+                            <label class="label">Khoa</label>
+                            <select id="selKhoa" class="select">
+                                <option value="">-- Chọn khoa --</option>
+                                @foreach (var item in ViewBag.Khoas as List<HeThong_User.Models.Khoa>)
+                                {
+                                    <option value="@item.MaKhoa">@item.TenKhoa</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Ngành</label>
+                            <select id="selNganh" class="select" disabled>
+                                <option value="">-- Chọn ngành --</option>
+                            </select>
+                        </div>
+                        <div class="field field-full">
+                            <label class="label">Môn học</label>
+                            <select id="selMonHoc" asp-for="MaMonHoc" class="select" disabled required>
+                                <option value="">-- Chọn môn học --</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <div style="display:flex; justify-content:flex-end; gap: 12px; margin-top: 10px;">
+                    <a class="btn btn-light" asp-action="Index" style="border-radius: 12px; padding: 10px 24px;">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 12px; padding: 10px 32px; font-weight: 700;">Đăng tải tài liệu</button>
+                </div>
+            </div>
+
+            <aside class="sidebar-info">
+                <div class="info-card">
+                    <span class="info-title">💡 Gợi ý nhanh</span>
+                    <ul class="info-list">
+                        <li>Chọn đúng danh mục để tài liệu dễ tiếp cận hơn.</li>
+                        <li>Mô tả chi tiết giúp tăng 40% khả năng được duyệt.</li>
+                        <li>Hệ thống tự động kiểm tra trùng lặp để đảm bảo chất lượng.</li>
+                    </ul>
+                </div>
+                <div class="info-card" style="background: rgba(37,99,235,.03); border-color: rgba(37,99,235,.1);">
+                    <span class="info-title" style="color: #2563eb;">🚀 Quy trình duyệt</span>
+                    <ul class="info-list" style="color: #1e293b;">
+                        <li><b>01. Đăng tải:</b> SV/GV hoàn tất form.</li>
+                        <li><b>02. Kiểm duyệt:</b> Cán bộ khoa xem xét.</li>
+                        <li><b>03. Công khai:</b> Admin xác nhận cuối cùng.</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </form>
+</div>
+
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // --- 1. XỬ LÝ SIDEBAR ACTIVE (Vá lỗi Layout) ---
-            var currentUrl = window.location.pathname;
-
-            $('.sidenav a').each(function () {
-                var linkUrl = $(this).attr('href');
-
-                // Xóa trạng thái cũ
-                $(this).closest('li').removeClass('active');
-                $(this).css({
-                    'background-color': 'transparent',
-                    'border-left': 'none'
-                });
-
-                // Tô xanh nếu khớp URL
-                if (currentUrl === linkUrl) {
-                    $(this).closest('li').addClass('active');
-                    $(this).css({
-                        'background-color': '#87CEFA', // Màu xanh nhạt
-                        'border-left': '4px solid #004d73' // Thanh sọc đậm bên trái
+            // Cascade Khoa -> Nganh -> Mon
+            $('#selKhoa').change(function () {
+                var maKhoa = $(this).val();
+                if (maKhoa) {
+                    $.getJSON('/Document/GetNganhsByKhoa', { maKhoa: maKhoa }, function (data) {
+                        var items = '<option value="">-- Chọn ngành --</option>';
+                        $.each(data, function (i, nganh) {
+                            items += "<option value='" + nganh.maNganh + "'>" + nganh.tenNganh + "</option>";
+                        });
+                        $('#selNganh').html(items).prop('disabled', false);
+                        $('#selMonHoc').html('<option value="">-- Chọn môn học --</option>').prop('disabled', true);
                     });
+                } else {
+                    $('#selNganh').html('<option value="">-- Chọn ngành --</option>').prop('disabled', true);
+                    $('#selMonHoc').html('<option value="">-- Chọn môn học --</option>').prop('disabled', true);
                 }
             });
 
-            // --- 2. HIỂN THỊ TÊN FILE KHI CHỌN (Dành cho trang Upload) ---
-            var fileInput = document.getElementById('fileInput');
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    if (e.target.files.length > 0) {
-                        var fileName = e.target.files[0].name;
-                        var fileNameDisplay = document.getElementById('file-name');
-                        if (fileNameDisplay) {
-                            fileNameDisplay.innerHTML = '<i class="fa-solid fa-check-circle"></i> Đã chọn: ' + fileName;
-                        }
-                    }
-                });
+            $('#selNganh').change(function () {
+                var maNganh = $(this).val();
+                if (maNganh) {
+                    $.getJSON('/Document/GetMonHocsByNganh', { maNganh: maNganh }, function (data) {
+                        var items = '<option value="">-- Chọn môn học --</option>';
+                        $.each(data, function (i, mon) {
+                            items += "<option value='" + mon.maMonHoc + "'>" + mon.tenMonHoc + "</option>";
+                        });
+                        $('#selMonHoc').html(items).prop('disabled', false);
+                    });
+                } else {
+                    $('#selMonHoc').html('<option value="">-- Chọn môn học --</option>').prop('disabled', true);
+                }
+            });
+
+            // Auto points based on document type
+            $('#selLoaiTL').change(function () {
+                var maLtl = $(this).val();
+                if (maLtl) {
+                    $.getJSON('/Document/GetDiemByLoaiTL', { maLtl: maLtl }, function (diem) {
+                        $('#DiemYeuCau').val(diem);
+                    });
+                } else {
+                    $('#DiemYeuCau').val(0);
+                }
+            });
+
+            // Drag & Drop
+            const drop = document.getElementById("drop");
+            const fileInput = document.getElementById("file");
+            const fileInfo = document.getElementById("fileInfo");
+
+            drop.addEventListener("click", () => fileInput.click());
+            
+            $(drop).on("dragenter dragover", function(e) {
+                e.preventDefault();
+                $(this).addClass("drag");
+            }).on("dragleave drop", function(e) {
+                e.preventDefault();
+                $(this).removeClass("drag");
+            });
+
+            drop.addEventListener("drop", (e) => {
+                const f = e.dataTransfer.files?.[0];
+                if (f) {
+                    fileInput.files = e.dataTransfer.files;
+                    updateFileInfo(f);
+                }
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                const f = e.target.files?.[0];
+                if (f) updateFileInfo(f);
+            });
+
+            function updateFileInfo(f) {
+                const sizeMB = Math.round((f.size / 1024 / 1024) * 10) / 10;
+                fileInfo.textContent = `📁 ${f.name} (${sizeMB} MB)`;
             }
+
+            // Simple progress simulation on submit
+            $('#uploadForm').submit(function() {
+                $('#progressWrap').show();
+                var bar = $('#bar');
+                var width = 0;
+                var interval = setInterval(function() {
+                    width += 5;
+                    bar.css('width', width + '%');
+                    if (width >= 90) clearInterval(interval);
+                }, 100);
+            });
         });
     </script>
 }

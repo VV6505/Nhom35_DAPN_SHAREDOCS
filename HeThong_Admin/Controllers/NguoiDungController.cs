@@ -17,17 +17,17 @@ namespace HeThong_Admin.Controllers
         {
             var query = _context.TaiKhoans
                 .Include(t => t.MaVaiTroNavigation)
-                .Include(t => t.SinhViens)
-                .Include(t => t.GiangViens)
+                .Include(t => t.MaSvNavigation)
+                .Include(t => t.MaGvNavigation)
                 .AsQueryable();
 
             // Tìm kiếm theo tên
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(t =>
-                    t.TenTk.Contains(search) ||
-                    t.SinhViens.Any(s => s.TenSv.Contains(search)) ||
-                    t.GiangViens.Any(g => g.TenGv.Contains(search)));
+                    (t.TenTk != null && t.TenTk.Contains(search)) ||
+                    (t.MaSvNavigation != null && t.MaSvNavigation.TenSv.Contains(search)) ||
+                    (t.MaGvNavigation != null && t.MaGvNavigation.TenGv.Contains(search)));
             }
 
             // Lọc theo vai trò
@@ -39,7 +39,10 @@ namespace HeThong_Admin.Controllers
             // Lọc theo trạng thái
             if (!string.IsNullOrEmpty(trangthai) && trangthai != "all")
             {
-                query = query.Where(t => t.TrangThai == trangthai);
+                if (int.TryParse(trangthai, out int ttValue))
+                {
+                    query = query.Where(t => t.TrangThai == ttValue);
+                }
             }
 
             var users = await query.OrderBy(t => t.MaTk).ToListAsync();
@@ -59,7 +62,7 @@ namespace HeThong_Admin.Controllers
             var tk = await _context.TaiKhoans.FindAsync(id);
             if (tk != null)
             {
-                tk.TrangThai = "Tạm khóa";
+                tk.TrangThai = 0; // Tạm khóa
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");
@@ -71,7 +74,7 @@ namespace HeThong_Admin.Controllers
             var tk = await _context.TaiKhoans.FindAsync(id);
             if (tk != null)
             {
-                tk.TrangThai = "Đang hoạt động";
+                tk.TrangThai = 1; // Đang hoạt động
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");

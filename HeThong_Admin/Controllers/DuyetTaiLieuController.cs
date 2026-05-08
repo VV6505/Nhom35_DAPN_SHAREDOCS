@@ -71,7 +71,7 @@ namespace HeThong_Admin.Controllers
             var tl = await _context.TaiLieus.FindAsync(id);
             if (tl != null)
             {
-                tl.TrangThaiDuyet = "DaDuyet";
+                tl.TrangThaiDuyet = "Đã duyệt";
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");
@@ -83,7 +83,7 @@ namespace HeThong_Admin.Controllers
             var tl = await _context.TaiLieus.FindAsync(id);
             if (tl != null)
             {
-                tl.TrangThaiDuyet = "TuChoi";
+                tl.TrangThaiDuyet = "Từ chối";
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");

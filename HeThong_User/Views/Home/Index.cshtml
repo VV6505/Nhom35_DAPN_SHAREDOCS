@@ -1,4 +1,4 @@
-﻿@model IEnumerable<HeThong_User.Models.TaiLieu>
+@model IEnumerable<HeThong_User.Models.TaiLieu>
 
 @{
     ViewData["Title"] = "Trang chủ - Bảng tin";
@@ -22,12 +22,12 @@
                     <div class="post-header d-flex justify-content-between align-items-start p-3">
                         <div class="post-header-info d-flex align-items-center">
                             <div class="post-avatar av2" style="width: 45px; height: 45px; background: #004d73; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                                @(item.MaNguoiDang?.Substring(0, 2).ToUpper() ?? "SV")
+                                @(item.MaNguoiDangNavigation?.MaSvNavigation?.TenSv?.Substring(0, 1).ToUpper() ?? item.MaNguoiDangNavigation?.TenTk?.Substring(0, 1).ToUpper() ?? "U")
                             </div>
                             <div class="ms-3">
-                                <div class="post-user fw-bold" style="font-size: 15px;">Phạm Lê Thiệu Quang</div>
+                                <div class="post-user fw-bold" style="font-size: 15px;">@(item.MaNguoiDangNavigation?.MaSvNavigation?.TenSv ?? item.MaNguoiDangNavigation?.TenTk ?? "Người dùng")</div>
                                 <div class="post-meta text-muted" style="font-size: 12px;">
-                                    Sinh viên CNTT • @(item.NgayDang?.ToString("dd/MM/yyyy")) • <i class="fa-solid fa-earth-americas"></i> Công khai
+                                    @(item.MaNguoiDangNavigation?.MaSvNavigation?.MaLopNavigation?.TenLop ?? "Thành viên") • @(item.NgayDang?.ToString("dd/MM/yyyy")) • <i class="fa-solid fa-earth-americas"></i> Công khai
                                 </div>
                             </div>
                         </div>
@@ -84,10 +84,10 @@
                             @foreach(var bl in item.BinhLuans) {
                                 <div class="comment d-flex gap-2 mb-2">
                                     <div class="comment-av d-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width:30px; height:30px; font-size:10px; font-weight:bold;">
-                                        @(bl.MaNd?.Substring(0,2).ToUpper() ?? "SV")
+                                        @(bl.MaNdNavigation?.MaSvNavigation?.TenSv?.Substring(0, 1).ToUpper() ?? "U")
                                     </div>
                                     <div class="comment-bubble bg-white p-2 rounded-3 border flex-grow-1 shadow-sm">
-                                        <div class="comment-name fw-bold" style="font-size:12px;">@bl.MaNd</div>
+                                        <div class="comment-name fw-bold" style="font-size:12px;">@(bl.MaNdNavigation?.MaSvNavigation?.TenSv ?? bl.MaNdNavigation?.TenTk ?? bl.MaNd)</div>
                                         <div class="comment-text" style="font-size:13px;">@bl.NoiDung</div>
                                     </div>
                                 </div>

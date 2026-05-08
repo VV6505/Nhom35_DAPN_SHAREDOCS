@@ -58,8 +58,8 @@
                         var diem = "—";
                         var vaiTroText = tk.MaVaiTroNavigation?.TenVaiTro ?? "—";
 
-                        var sv = tk.SinhViens.FirstOrDefault();
-                        var gv = tk.GiangViens.FirstOrDefault();
+                        var sv = tk.MaSvNavigation;
+                        var gv = tk.MaGvNavigation;
 
                         if (sv != null)
                         {
@@ -77,7 +77,7 @@
                             tenHienThi = tk.TenTk;
                         }
 
-                        var isActive = tk.TrangThai == "Đang hoạt động";
+                        var isActive = tk.TrangThai == 1;
                                 <tr>
                                     <td><strong>@tenHienThi</strong></td>
                                     <td>@maSo</td>

@@ -1,4 +1,4 @@
-﻿@model HeThong_User.Models.TaiLieu
+@model HeThong_User.Models.TaiLieu
 
 @{
     ViewData["Title"] = Model.TieuDe + " - Chi tiết tài liệu";
@@ -125,4 +125,14 @@
     .card { transition: 0.3s; }
     .btn-success { background-color: #198754 !important; }
     .btn-success:hover { background-color: #157347 !important; transform: translateY(-2px); }
+
+    /* Tăng cỡ chữ theo yêu cầu */
+    body { font-size: 16px; }
+    .page-head h1 { font-size: 2.2rem !important; }
+    .page-head p { font-size: 1.1rem !important; }
+    .card h2 { font-size: 2rem !important; }
+    .card h5 { font-size: 1.3rem !important; }
+    .text-muted p { font-size: 1.1rem !important; }
+    .download-stats span, .download-stats b { font-size: 1rem !important; }
+    .comment-list p { font-size: 1rem !important; }
 </style>

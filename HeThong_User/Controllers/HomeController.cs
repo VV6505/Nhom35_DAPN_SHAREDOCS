@@ -7,10 +7,12 @@ namespace HeThong_User.Controllers
     public class HomeController : Controller
     {
         private readonly HeThongChiaSeTaiLieu_V1 _context;
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(HeThongChiaSeTaiLieu_V1 context)
+        public HomeController(HeThongChiaSeTaiLieu_V1 context, ILogger<HomeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -22,13 +24,17 @@ namespace HeThong_User.Controllers
             ViewBag.TotalReports = _context.BaoCaoViPhams.Count(); // Thêm đếm báo cáo cho ô màu đỏ
 
             // 2. Lấy danh sách tài liệu cho Bảng tin
-            // Mình sẽ lấy 10 tài liệu mới nhất để bảng tin nhìn dài và đầy đặn hơn
+            // Lấy 10 tài liệu mới nhất kèm thông tin người đăng
             var newsfeedDocs = _context.TaiLieus
-                .Include(t => t.MaMonHocNavigation)   // Để hiện tên môn học (VD: CTDL&GT)
-                .Include(t => t.MaloaiTlNavigation)   // Để hiện loại (VD: Giáo trình)
-                                                      // Nếu trong Model của bạn đã tạo quan hệ (Foreign Key) với SinhVien, hãy dùng thêm:
-                                                      // .Include(t => t.MaNguoiDangNavigation) 
-                .Where(t => t.TrangThaiDuyet == "DaDuyet")
+                .Include(t => t.MaMonHocNavigation)
+                .Include(t => t.MaLoaiTlNavigation)
+                .Include(t => t.MaNguoiDangNavigation)
+                    .ThenInclude(tk => tk.MaSvNavigation)
+                .Include(t => t.BinhLuans)
+                    .ThenInclude(bl => bl.MaNdNavigation)
+                        .ThenInclude(tk => tk.MaSvNavigation)
+                .Include(t => t.DanhGia)
+                .Where(t => t.TrangThaiDuyet == "Đã duyệt") // Chuẩn hóa theo DB: Đã duyệt
                 .OrderByDescending(t => t.NgayDang)
                 .Take(10)
                 .ToList();  
@@ -47,6 +53,39 @@ namespace HeThong_User.Controllers
                 .OrderByDescending(l => l.NgayTai)
                 .ToList();
             return View(lichSu);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNotifications()
+        {
+            var userId = HttpContext.Session.GetString("MaTaiKhoan");
+            if (string.IsNullOrEmpty(userId)) return Json(new { success = false });
+
+            var notifications = await _context.ThongBaos
+                .Where(t => t.MaNguoiNhan == userId)
+                .OrderByDescending(t => t.NgayTao)
+                .Take(10)
+                .Select(t => new {
+                    t.MaTb,
+                    t.TieuDe,
+                    t.NoiDung,
+                    t.TrangThai,
+                    NgayTao = t.NgayTao.HasValue ? t.NgayTao.Value.ToString("dd/MM/yyyy HH:mm") : ""
+                })
+                .ToListAsync();
+
+            return Json(new { success = true, data = notifications });
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

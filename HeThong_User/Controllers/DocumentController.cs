@@ -1,4 +1,4 @@
-﻿    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using HeThong_User.Models;
     using System.Linq;
@@ -14,11 +14,13 @@
         {
             private readonly HeThongChiaSeTaiLieu_V1 _context;
             private readonly IWebHostEnvironment _env;
+            private readonly ILogger<DocumentController> _logger;
 
-            public DocumentController(HeThongChiaSeTaiLieu_V1 context, IWebHostEnvironment env)
+            public DocumentController(HeThongChiaSeTaiLieu_V1 context, IWebHostEnvironment env, ILogger<DocumentController> logger)
             {
                 _context = context;
                 _env = env;
+                _logger = logger;
             }
 
             // =================================================================
@@ -33,15 +35,17 @@
                             .ThenInclude(m => m.TaiLieus)
                     .ToList();
 
-                // 2. Truy vấn lấy Tài liệu + Join lấy Tên Sinh Viên (Người đăng)
+                // 2. Truy vấn lấy Tài liệu + Join lấy Tên Sinh Viên (Thông qua TaiKhoan)
                 var query = from t in _context.TaiLieus
-                            join sv in _context.SinhViens on t.MaNguoiDang equals sv.MaSv into svGroup
+                            join tk in _context.TaiKhoans on t.MaNguoiDang equals tk.MaTk into tkGroup
+                            from tk in tkGroup.DefaultIfEmpty()
+                            join sv in _context.SinhViens on tk.MaSv equals sv.MaSv into svGroup
                             from sv in svGroup.DefaultIfEmpty()
-                            where t.TrangThaiDuyet == "DaDuyet"
+                            where t.TrangThaiDuyet == "Đã duyệt"
                             select new
                             {
                                 Data = t,
-                                TenNguoiDang = sv != null ? sv.TenSv : t.MaNguoiDang,
+                                TenNguoiDang = sv != null ? sv.TenSv : (tk != null ? tk.TenTk : t.MaNguoiDang),
                                 TenMon = t.MaMonHocNavigation.TenMonHoc
                             };
 
@@ -80,7 +84,7 @@
                 }
                 else
                 {
-                    var newLike = new DanhGium
+                    var newLike = new DanhGia
                     {
                         // Mã 5 ký tự: "D" + 4 số cuối của Ticks để tránh lỗi Database
                         MaDg = "D" + System.DateTime.Now.Ticks.ToString().Substring(14, 4),
@@ -93,6 +97,28 @@
                     _context.SaveChanges();
                     return Json(new { success = true, liked = true, count = _context.DanhGia.Count(d => d.MaTl == maTL) });
                 }
+            }
+
+            [HttpGet]
+            public IActionResult GetNganhsByKhoa(string maKhoa)
+            {
+                var nganhs = _context.Nganhs.Where(n => n.MaKhoa == maKhoa).Select(n => new { n.MaNganh, n.TenNganh }).ToList();
+                return Json(nganhs);
+            }
+
+            [HttpGet]
+            public IActionResult GetMonHocsByNganh(string maNganh)
+            {
+                var mons = _context.MonHocs.Where(m => m.MaNganh == maNganh).Select(m => new { m.MaMonHoc, m.TenMonHoc }).ToList();
+                return Json(mons);
+            }
+
+            [HttpGet]
+            public IActionResult GetDiemByLoaiTL(string maLtl)
+            {
+                var loai = _context.LoaiTaiLieus.Include(l => l.MaDqNavigation).FirstOrDefault(l => l.MaLtl == maLtl);
+                var diem = loai?.MaDqNavigation?.DiemTl ?? 0;
+                return Json(diem);
             }
 
             // =================================================================
@@ -128,25 +154,25 @@
                 .Include(t => t.MaMonHocNavigation)
                     .ThenInclude(m => m.MaNganhNavigation)
                         .ThenInclude(n => n.MaKhoaNavigation) // Bao gồm cả Khoa/Ngành
-                .Include(t => t.MaloaiTlNavigation)
+                .Include(t => t.MaLoaiTlNavigation)
                 .Include(t => t.BinhLuans) // Để hiện số bình luận
                 .Include(t => t.DanhGia)   // Để tính sao trung bình
                 .FirstOrDefault(m => m.MaTaiLieu == id);
 
             if (taiLieu == null) return NotFound();
 
-            // Lấy thông tin người đăng (Tên, Ảnh)
-            var sinhVienDang = _context.SinhViens.FirstOrDefault(s => s.MaSv == taiLieu.MaNguoiDang);
-            ViewBag.NguoiDang = sinhVienDang; // Truyền nguyên Model SinhVien
+            // Lấy thông tin người đăng (Tên, Ảnh) thông qua TaiKhoan
+            var tkDang = _context.TaiKhoans.Include(tk => tk.MaSvNavigation).FirstOrDefault(tk => tk.MaTk == taiLieu.MaNguoiDang);
+            ViewBag.NguoiDang = tkDang?.MaSvNavigation; // Truyền Model SinhVien nếu có
 
             // Lấy tên Khoa, Ngành để hiển thị
             ViewBag.TenKhoa = taiLieu.MaMonHocNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa;
             ViewBag.TenNganh = taiLieu.MaMonHocNavigation?.MaNganhNavigation?.TenNganh;
 
-            // Lấy danh sách bình luận (Có kèm tên người bình luận)
-            // Lấy danh sách bình luận kèm tên sinh viên bằng cách Join 2 bảng BinhLuan và SinhVien
+            // Lấy danh sách bình luận (Có kèm tên người bình luận thông qua TaiKhoan -> SinhVien)
             var comments = (from b in _context.BinhLuans
-                            join sv in _context.SinhViens on b.MaNd equals sv.MaSv
+                            join tk in _context.TaiKhoans on b.MaNd equals tk.MaTk
+                            join sv in _context.SinhViens on tk.MaSv equals sv.MaSv
                             where b.MaTl == id
                             select new
                             {
@@ -174,7 +200,7 @@
                 if (taiLieu == null) return NotFound();
 
                 ViewBag.MaMonHoc = _context.MonHocs.ToList();
-                ViewBag.MaloaiTl = _context.LoaiTaiLieus.ToList();
+                ViewBag.MaLoaiTl = _context.LoaiTaiLieus.ToList();
 
                 return View(taiLieu);
             }
@@ -282,8 +308,8 @@
         // GET: Hiển thị giao diện đăng tải
         public IActionResult Upload()
         {
-            ViewBag.MaMonHoc = _context.MonHocs.ToList();
-            ViewBag.MaloaiTl = _context.LoaiTaiLieus.ToList();
+            ViewBag.MaLoaiTl = _context.LoaiTaiLieus.ToList();
+            ViewBag.Khoas = _context.Khoas.ToList();
             return View();
         }
 
@@ -308,11 +334,14 @@
                 taiLieu.LoaiFile = Path.GetExtension(fileUpload.FileName).Replace(".", "").ToUpper();
                 if (taiLieu.LoaiFile.Length > 10) taiLieu.LoaiFile = taiLieu.LoaiFile.Substring(0, 10);
 
-                taiLieu.TrangThaiDuyet = "ChoDuyet"; // Chờ admin duyệt
+                taiLieu.TrangThaiDuyet = "Chờ duyệt"; // Chờ admin duyệt
                 taiLieu.NgayDang = DateTime.Now;
                 taiLieu.LuotTai = 0;
                 taiLieu.LanTaiBan = 1;
-                taiLieu.DiemYeuCau = 0;
+
+                // Lấy điểm chuẩn từ CSDL dựa trên Loại tài liệu để đảm bảo chính xác
+                var loaiTl = _context.LoaiTaiLieus.Include(l => l.MaDqNavigation).FirstOrDefault(l => l.MaLtl == taiLieu.MaLoaiTl);
+                taiLieu.DiemYeuCau = loaiTl?.MaDqNavigation?.DiemTl ?? 0;
 
                 // Sinh mã tự động
                 var lastItem = _context.TaiLieus.OrderByDescending(t => t.MaTaiLieu).FirstOrDefault();
@@ -320,7 +349,10 @@
                     ? "TL" + (int.Parse(lastItem.MaTaiLieu.Substring(2)) + 1).ToString("D3")
                     : "TL001";
 
-                taiLieu.MaNguoiDang = "SV001";
+                var loaiNguoiDung = HttpContext.Session.GetString("LoaiNguoiDung");
+                taiLieu.MaNguoiDang = loaiNguoiDung == "SinhVien" 
+                    ? HttpContext.Session.GetString("MaSinhVien")
+                    : HttpContext.Session.GetString("MaGiangVien");
 
                 _context.TaiLieus.Add(taiLieu);
                 await _context.SaveChangesAsync();
@@ -328,7 +360,7 @@
             }
 
             ViewBag.MaMonHoc = _context.MonHocs.ToList();
-            ViewBag.MaloaiTl = _context.LoaiTaiLieus.ToList();
+            ViewBag.MaLoaiTl = _context.LoaiTaiLieus.ToList();
             return View(taiLieu);
         }
 
@@ -338,7 +370,7 @@
         public IActionResult RecentReports(string id)
         {
             // 1. Lấy danh sách tài liệu cho ô chọn (Dropdown)
-            ViewBag.DanhSachTaiLieu = _context.TaiLieus.Where(t => t.TrangThaiDuyet == "DaDuyet").ToList();
+            ViewBag.DanhSachTaiLieu = _context.TaiLieus.Where(t => t.TrangThaiDuyet == "Đã duyệt").ToList();
 
             // 2. Lưu lại ID truyền từ trang Chi tiết sang để View tự động chọn
             ViewBag.SelectedId = id;
@@ -351,5 +383,168 @@
 
             return View(lichSu);
         }
+
+        // GET: Document/MyDocuments
+        public IActionResult MyDocuments()
+        {
+            // Kiểm tra session
+            var maTaiKhoan = HttpContext.Session.GetString("MaTaiKhoan");
+            if (string.IsNullOrEmpty(maTaiKhoan))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            return View();
+        }
+
+        // GET: Document/GetMyUploads - Lấy tài liệu đã đăng
+        [HttpGet]
+        public async Task<IActionResult> GetMyUploads()
+        {
+            try
+            {
+                var loaiNguoiDung = HttpContext.Session.GetString("LoaiNguoiDung");
+                var maNguoiDung = loaiNguoiDung == "SinhVien" 
+                    ? HttpContext.Session.GetString("MaSinhVien")
+                    : HttpContext.Session.GetString("MaGiangVien");
+
+                if (string.IsNullOrEmpty(maNguoiDung))
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin người dùng" });
+                }
+
+                var taiLieuDaDang = await _context.TaiLieus
+                    .Include(tl => tl.MaMonHocNavigation)
+                    .Include(tl => tl.MaLoaiTlNavigation)
+                    .Where(tl => tl.MaNguoiDang == maNguoiDung)
+                    .OrderByDescending(tl => tl.NgayDang)
+                    .Select(tl => new
+                    {
+                        maTaiLieu = tl.MaTaiLieu,
+                        tieuDe = tl.TieuDe,
+                        moTa = tl.MoTa,
+                        loaiFile = tl.LoaiFile,
+                        kichThuoc = tl.KichThuoc,
+                        luotTai = tl.LuotTai,
+                        ngayDang = tl.NgayDang,
+                        trangThaiDuyet = tl.TrangThaiDuyet,
+                        tenMonHoc = tl.MaMonHocNavigation != null ? tl.MaMonHocNavigation.TenMonHoc : null,
+                        loaiTaiLieu = tl.MaLoaiTlNavigation != null ? tl.MaLoaiTlNavigation.TenLtl : null,
+                        diemYeuCau = tl.DiemYeuCau
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, taiLieu = taiLieuDaDang });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy tài liệu đã đăng");
+                return Json(new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
+        // GET: Document/GetMySaved - Lấy tài liệu đã lưu
+        [HttpGet]
+        public async Task<IActionResult> GetMySaved()
+        {
+            try
+            {
+                var loaiNguoiDung = HttpContext.Session.GetString("LoaiNguoiDung");
+                var maNguoiDung = loaiNguoiDung == "SinhVien" 
+                    ? HttpContext.Session.GetString("MaSinhVien")
+                    : HttpContext.Session.GetString("MaGiangVien");
+
+                if (string.IsNullOrEmpty(maNguoiDung))
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin người dùng" });
+                }
+
+                var taiLieuDaLuu = await _context.TLYeuThiches
+                    .Include(tlt => tlt.MaTlNavigation)
+                        .ThenInclude(tl => tl.MaMonHocNavigation)
+                    .Include(tlt => tlt.MaTlNavigation)
+                        .ThenInclude(tl => tl.MaLoaiTlNavigation)
+                    .Where(tlt => tlt.MaNd == maNguoiDung)
+                    .OrderByDescending(tlt => tlt.ThoiGian)
+                    .Select(tlt => new
+                    {
+                        maYeuThich = tlt.MaYeuThich,
+                        thoiGianLuu = tlt.ThoiGian,
+                        taiLieu = tlt.MaTlNavigation != null ? new
+                        {
+                            maTaiLieu = tlt.MaTlNavigation.MaTaiLieu,
+                            tieuDe = tlt.MaTlNavigation.TieuDe,
+                            moTa = tlt.MaTlNavigation.MoTa,
+                            loaiFile = tlt.MaTlNavigation.LoaiFile,
+                            kichThuoc = tlt.MaTlNavigation.KichThuoc,
+                            luotTai = tlt.MaTlNavigation.LuotTai,
+                            ngayDang = tlt.MaTlNavigation.NgayDang,
+                            tenMonHoc = tlt.MaTlNavigation.MaMonHocNavigation != null ? tlt.MaTlNavigation.MaMonHocNavigation.TenMonHoc : null,
+                            loaiTaiLieu = tlt.MaTlNavigation.MaLoaiTlNavigation != null ? tlt.MaTlNavigation.MaLoaiTlNavigation.TenLtl : null,
+                            diemYeuCau = tlt.MaTlNavigation.DiemYeuCau
+                        } : null
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, taiLieu = taiLieuDaLuu });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy tài liệu đã lưu");
+                return Json(new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
+        // GET: Document/GetMyDownloads - Lấy lịch sử tải xuống
+        [HttpGet]
+        public async Task<IActionResult> GetMyDownloads()
+        {
+            try
+            {
+                var loaiNguoiDung = HttpContext.Session.GetString("LoaiNguoiDung");
+                var maNguoiDung = loaiNguoiDung == "SinhVien" 
+                    ? HttpContext.Session.GetString("MaSinhVien")
+                    : HttpContext.Session.GetString("MaGiangVien");
+
+                if (string.IsNullOrEmpty(maNguoiDung))
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin người dùng" });
+                }
+
+                var lichSuTaiXuong = await _context.LichSuTaiXuongs
+                    .Include(ls => ls.MaTaiLieuNavigation)
+                        .ThenInclude(tl => tl.MaMonHocNavigation)
+                    .Include(ls => ls.MaTaiLieuNavigation)
+                        .ThenInclude(tl => tl.MaLoaiTlNavigation)
+                    .Where(ls => ls.MaNd == maNguoiDung)
+                    .OrderByDescending(ls => ls.NgayTai)
+                    .Select(ls => new
+                    {
+                        maDownTl = ls.MaDownTL,
+                        ngayTai = ls.NgayTai,
+                        taiLieu = ls.MaTaiLieuNavigation != null ? new
+                        {
+                            maTaiLieu = ls.MaTaiLieuNavigation.MaTaiLieu,
+                            tieuDe = ls.MaTaiLieuNavigation.TieuDe,
+                            moTa = ls.MaTaiLieuNavigation.MoTa,
+                            loaiFile = ls.MaTaiLieuNavigation.LoaiFile,
+                            kichThuoc = ls.MaTaiLieuNavigation.KichThuoc,
+                            luotTai = ls.MaTaiLieuNavigation.LuotTai,
+                            ngayDang = ls.MaTaiLieuNavigation.NgayDang,
+                            tenMonHoc = ls.MaTaiLieuNavigation.MaMonHocNavigation != null ? ls.MaTaiLieuNavigation.MaMonHocNavigation.TenMonHoc : null,
+                            loaiTaiLieu = ls.MaTaiLieuNavigation.MaLoaiTlNavigation != null ? ls.MaTaiLieuNavigation.MaLoaiTlNavigation.TenLtl : null,
+                            diemYeuCau = ls.MaTaiLieuNavigation.DiemYeuCau
+                        } : null
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, lichSu = lichSuTaiXuong });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy lịch sử tải xuống");
+                return Json(new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
     }
-    }
+}

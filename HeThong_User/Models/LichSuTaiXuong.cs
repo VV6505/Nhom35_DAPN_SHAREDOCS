@@ -13,5 +13,7 @@ public partial class LichSuTaiXuong
 
     public string? MaNd { get; set; }
 
+    public virtual TaiKhoan? MaNdNavigation { get; set; }
+
     public virtual TaiLieu? MaTaiLieuNavigation { get; set; }
 }

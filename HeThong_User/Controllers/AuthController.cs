@@ -15,7 +15,7 @@ namespace HeThong_User.Controllers
             _logger = logger;
         }
 
-        // GET: Auth/Login
+        // [GET] Trang đăng nhập: Hiển thị giao diện cho người dùng nhập tài khoản/mật khẩu.
         public IActionResult Login()
         {
             // Nếu đã đăng nhập, chuyển về trang chủ
@@ -114,7 +114,7 @@ namespace HeThong_User.Controllers
                     return View();
                 }
 
-                // Lưu thông tin vào session
+                // BƯỚC 4: Thiết lập các thông tin cơ bản vào Session để sử dụng toàn hệ thống
                 _logger.LogInformation("Đang lưu thông tin vào Session...");
                 HttpContext.Session.SetString("MaTaiKhoan", taiKhoan.MaTk ?? "");
                 HttpContext.Session.SetString("TenTaiKhoan", taiKhoan.TenTk ?? "");
@@ -122,15 +122,15 @@ namespace HeThong_User.Controllers
                 HttpContext.Session.SetString("TenVaiTro", taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "");
 
                 // Tạo object để trả về cho client (lưu vào localStorage)
-                object userInfo = new
+                dynamic userInfo = new
                 {
-                    MaTaiKhoan = taiKhoan.MaTk,
-                    TenTaiKhoan = taiKhoan.TenTk,
-                    MaVaiTro = taiKhoan.MaVaiTro,
-                    TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro,
+                    MaTaiKhoan = taiKhoan.MaTk ?? "",
+                    TenTaiKhoan = taiKhoan.TenTk ?? "",
+                    MaVaiTro = taiKhoan.MaVaiTro ?? "",
+                    TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "Người dùng",
                     LoaiNguoiDung = "",
                     MaNguoiDung = "",
-                    TenNguoiDung = "",
+                    TenNguoiDung = taiKhoan.TenTk ?? "Người dùng",
                     Email = "",
                     DiemTichLuy = 0
                 };
@@ -143,16 +143,17 @@ namespace HeThong_User.Controllers
                     HttpContext.Session.SetString("MaSinhVien", sinhVien.MaSv ?? "");
                     HttpContext.Session.SetString("TenNguoiDung", sinhVien.TenSv ?? "");
                     HttpContext.Session.SetString("LoaiNguoiDung", "SinhVien");
+                    HttpContext.Session.SetString("DiemTichLuy", (sinhVien.DiemTichLuy ?? 0).ToString());
                     
                     userInfo = new
                     {
-                        MaTaiKhoan = taiKhoan.MaTk,
-                        TenTaiKhoan = taiKhoan.TenTk,
-                        MaVaiTro = taiKhoan.MaVaiTro,
-                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro,
+                        MaTaiKhoan = taiKhoan.MaTk ?? "",
+                        TenTaiKhoan = taiKhoan.TenTk ?? "",
+                        MaVaiTro = taiKhoan.MaVaiTro ?? "",
+                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "Sinh viên",
                         LoaiNguoiDung = "SinhVien",
-                        MaNguoiDung = sinhVien.MaSv,
-                        TenNguoiDung = sinhVien.TenSv,
+                        MaNguoiDung = sinhVien.MaSv ?? "",
+                        TenNguoiDung = sinhVien.TenSv ?? "Sinh viên",
                         Email = sinhVien.Email ?? "",
                         NgaySinh = sinhVien.NgaySinh?.ToString("dd/MM/yyyy") ?? "",
                         GioiTinh = sinhVien.GioiTinh ?? "",
@@ -168,19 +169,18 @@ namespace HeThong_User.Controllers
                     HttpContext.Session.SetString("MaGiangVien", giangVien.MaGv ?? "");
                     HttpContext.Session.SetString("TenNguoiDung", giangVien.TenGv ?? "");
                     HttpContext.Session.SetString("LoaiNguoiDung", "GiangVien");
+                    HttpContext.Session.SetString("DiemTichLuy", "0");
                     
                     userInfo = new
                     {
-                        MaTaiKhoan = taiKhoan.MaTk,
-                        TenTaiKhoan = taiKhoan.TenTk,
-                        MaVaiTro = taiKhoan.MaVaiTro,
-                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro,
+                        MaTaiKhoan = taiKhoan.MaTk ?? "",
+                        TenTaiKhoan = taiKhoan.TenTk ?? "",
+                        MaVaiTro = taiKhoan.MaVaiTro ?? "",
+                        TenVaiTro = taiKhoan.MaVaiTroNavigation?.TenVaiTro ?? "Giảng viên",
                         LoaiNguoiDung = "GiangVien",
-                        MaNguoiDung = giangVien.MaGv,
-                        TenNguoiDung = giangVien.TenGv,
+                        MaNguoiDung = giangVien.MaGv ?? "",
+                        TenNguoiDung = giangVien.TenGv ?? "Giảng viên",
                         Email = giangVien.Email ?? "",
-                        NgaySinh = giangVien.NgaySinh?.ToString("dd/MM/yyyy") ?? "",
-                        GioiTinh = giangVien.GioiTinh ?? "",
                         Sdt = giangVien.Sdt ?? "",
                         DiemTichLuy = 0,
                         MaKhoa = giangVien.MaKhoa ?? ""
@@ -216,7 +216,7 @@ namespace HeThong_User.Controllers
             }
         }
 
-        // GET: Auth/Logout
+        // [GET] Đăng xuất: Xóa toàn bộ Session và chuyển hướng người dùng về trang đăng nhập.
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

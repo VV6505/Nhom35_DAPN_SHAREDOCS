@@ -121,6 +121,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaTlNavigation).WithMany(p => p.BinhLuans)
                 .HasForeignKey(d => d.MaTl)
                 .HasConstraintName("FK__BinhLuan__MaTL__66603565");
+
+            entity.HasOne(d => d.MaNdNavigation).WithMany(p => p.BinhLuans)
+                .HasForeignKey(d => d.MaNd)
+                .HasConstraintName("FK__BinhLuan__MaND__6754599E");
         });
 
         modelBuilder.Entity<DanhGia>(entity =>
@@ -152,6 +156,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaTlNavigation).WithMany(p => p.DanhGia)
                 .HasForeignKey(d => d.MaTl)
                 .HasConstraintName("FK__DanhGia__MaTL__619B8048");
+
+            entity.HasOne(d => d.MaNdNavigation).WithMany(p => p.DanhGia)
+                .HasForeignKey(d => d.MaNd)
+                .HasConstraintName("FK__DanhGia__MaND__628FA481");
         });
 
         modelBuilder.Entity<DoQuy>(entity =>
@@ -294,6 +302,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaTaiLieuNavigation).WithMany(p => p.LichSuTaiXuongs)
                 .HasForeignKey(d => d.MaTaiLieu)
                 .HasConstraintName("FK__LichSuTai__MaTai__6E01572D");
+
+            entity.HasOne(d => d.MaNdNavigation).WithMany(p => p.LichSuTaiXuongs)
+                .HasForeignKey(d => d.MaNd)
+                .HasConstraintName("FK__LichSuTai__MaND__6EF57B66");
         });
 
         modelBuilder.Entity<LoaiTaiLieu>(entity =>
@@ -567,6 +579,10 @@ public partial class HeThongChiaSeTaiLieu_V1 : DbContext
             entity.HasOne(d => d.MaTlNavigation).WithMany(p => p.ThongBaos)
                 .HasForeignKey(d => d.MaTl)
                 .HasConstraintName("FK__ThongBao__MaTL__5EBF139D");
+
+            entity.HasOne(d => d.MaNguoiNhanNavigation).WithMany(p => p.ThongBaos)
+                .HasForeignKey(d => d.MaNguoiNhan)
+                .HasConstraintName("FK__ThongBao__MaNguo__5DCAEF64");
         });
 
         modelBuilder.Entity<TLYeuThich>(entity =>

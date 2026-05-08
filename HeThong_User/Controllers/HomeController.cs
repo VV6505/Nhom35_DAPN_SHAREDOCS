@@ -1,19 +1,18 @@
-using System.Diagnostics;
-using HeThong_User.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using HeThong_User.Models;
 
 namespace HeThong_User.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly HeThongChiaSeTaiLieu_V1 _context;
+        private readonly ILogger<HomeController> _logger;
 
         public HomeController(ILogger<HomeController> logger, HeThongChiaSeTaiLieu_V1 context)
         {
-            _logger = logger;
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -40,7 +39,44 @@ namespace HeThong_User.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            // 1. Giữ nguyên các con số thống kê cho Header/Sidebar
+            ViewBag.TotalDocs = _context.TaiLieus.Count(t => t.TrangThaiDuyet == "Đã duyệt");
+            ViewBag.TotalUsers = _context.SinhViens.Count();
+            ViewBag.TotalDownloads = _context.TaiLieus.Sum(t => t.LuotTai) ?? 0;
+            ViewBag.TotalReports = _context.BaoCaoViPhams.Count(); // Thêm đếm báo cáo cho ô màu đỏ
+
+            // 2. Lấy danh sách tài liệu cho Bảng tin
+            // Lấy 10 tài liệu mới nhất kèm thông tin người đăng
+            var newsfeedDocs = _context.TaiLieus
+                .Include(t => t.MaMonHocNavigation)
+                .Include(t => t.MaLoaiTlNavigation)
+                .Include(t => t.MaNguoiDangNavigation)
+                    .ThenInclude(tk => tk.MaSvNavigation)
+                .Include(t => t.BinhLuans)
+                    .ThenInclude(bl => bl.MaNdNavigation)
+                        .ThenInclude(tk => tk.MaSvNavigation)
+                .Include(t => t.DanhGia)
+                .Where(t => t.TrangThaiDuyet == "Đã duyệt") // Chuẩn hóa theo DB: Đã duyệt
+                .OrderByDescending(t => t.NgayDang)
+                .Take(10)
+                .ToList();  
+
+            return View(newsfeedDocs);
+        }
+
+        public IActionResult Students()
+        {
+            var dsSinhVien = _context.SinhViens.Include(s => s.MaLopNavigation).ToList();
+            return View(dsSinhVien);
+        }
+
+        public IActionResult History()
+        {
+            var lichSu = _context.LichSuTaiXuongs
+                .Include(l => l.MaTaiLieuNavigation)
+                .OrderByDescending(l => l.NgayTai)
+                .ToList();
+            return View(lichSu);
         }
 
         public IActionResult Privacy()
@@ -51,7 +87,23 @@ namespace HeThong_User.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetLatestPoints()
+        {
+            int points = 0;
+            var maSV = HttpContext.Session.GetString("MaSinhVien");
+
+            if (!string.IsNullOrEmpty(maSV))
+            {
+                var sinhVien = await _context.SinhViens.FindAsync(maSV);
+                if (sinhVien != null)
+                {
+                    points = sinhVien.DiemTichLuy ?? 0;
+                }
+            }
+            return Json(new { success = true, points = points });
         }
     }
 }

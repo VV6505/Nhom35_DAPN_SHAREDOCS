@@ -13,6 +13,7 @@ namespace HeThong_Admin.Controllers
             _context = context;
         }
 
+        // [GET] Đăng nhập Admin: Hiển thị form đăng nhập dành riêng cho Admin và Cán bộ khoa.
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -20,6 +21,7 @@ namespace HeThong_Admin.Controllers
             return View();
         }
 
+        // Chỉ Admin (VT001) và Cán bộ khoa (VT004) mới có quyền vào đây
         [HttpPost]
         public async Task<IActionResult> Login(string? username, string? password, string? returnUrl = null)
         {
@@ -56,7 +58,7 @@ namespace HeThong_Admin.Controllers
                     return View();
                 }
 
-                // Kiểm tra trạng thái tài khoản (0 = Khóa)
+                // Khóa tài khoản nếu vi phạm (TrangThai = 0)
                 if (taiKhoan.TrangThai == 0)
                 {
                     ViewBag.Error = "Tài khoản bị tạm khóa. Vui lòng liên hệ Admin để biết thêm thông tin!";
@@ -96,6 +98,7 @@ namespace HeThong_Admin.Controllers
             }
         }
 
+        // [GET] Đăng xuất Admin: Xóa sạch Session của trang quản trị và quay về trang đăng nhập.
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

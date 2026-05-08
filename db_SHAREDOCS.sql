@@ -143,7 +143,7 @@ CREATE TABLE TaiLieu (
     KichThuoc FLOAT,
     LuotTai INT DEFAULT 0,
     CheDoHienThi BIT DEFAULT 1,
-    TrangThaiDuyet NVARCHAR(20) CHECK (TrangThaiDuyet IN (N'Chờ duyệt', N'Đã duyệt', N'Từ chối')) DEFAULT N'Chờ duyệt',
+    TrangThaiDuyet NVARCHAR(20) CHECK (TrangThaiDuyet IN (N'Chờ duyệt', N'Chờ Admin duyệt', N'Đã duyệt', N'Từ chối')) DEFAULT N'Chờ duyệt',
     LyDoTuChoi NVARCHAR(255),
     MaMonHoc CHAR(5),
     MaNguoiDang CHAR(5),
@@ -479,6 +479,25 @@ INSERT INTO BinhLuan (MaBL, MaTL, MaND, NoiDung) VALUES
 ('BL002', 'TL002', 'SV003', N'Đề thi này sát với thực tế ôn tập.');
 GO
 
+-----------------------------------------------------------
+-- CHÈN DỮ LIỆU BẢNG BAOCAOVIPHAM
+-----------------------------------------------------------
+INSERT INTO BaoCaoViPham (MaBaoCao, MaTaiLieu, NguoiBaoCao, LyDo, MoTaChiTiet, TrangThaiXuLy, NgayBaoCao, NgayDuyet) VALUES  
+('BC001', 'TL001', 'SV002', N'Tài liệu sai kiến thức', N'Nội dung Slide Java Swing bị nhầm lẫn ở phần xử lý sự kiện JButton.', N'Đã xử lý', '2026-04-20 08:30:00', '2026-04-21 14:00:00'),
+('BC002', 'TL002', 'SV003', N'Vi phạm bản quyền', N'Tài liệu này được sao chép nguyên văn từ giáo trình của một tác giả khác chưa xin phép.', N'Chờ xử lý', '2026-04-22 09:15:00', NULL),
+('BC003', 'TL003', 'SV005', N'File bị lỗi', N'Không thể mở được file PDF, thông báo lỗi định dạng file không hợp lệ.', N'Chờ xử lý', '2026-04-23 10:00:00', NULL),
+('BC004', 'TL004', 'SV001', N'Nội dung không phù hợp', N'Giáo trình có chứa một số hình ảnh không liên quan đến môn học Kỹ thuật Cơ khí.', N'Đã bác bỏ', '2026-04-24 11:45:00', '2026-04-25 09:00:00'),
+('BC005', 'TL005', 'SV007', N'Tài liệu rác/Spam', N'File tải lên chỉ có trang trắng, không chứa thông tin thực hành ReactJS.', N'Đã xử lý', '2026-04-25 13:20:00', '2026-04-26 10:30:00'),
+('BC006', 'TL007', 'SV006', N'Sai phân loại môn học', N'Tài liệu AI nhưng lại đang được gắn vào danh mục môn học khác.', N'Chờ xử lý', '2026-04-26 15:10:00', NULL),
+('BC007', 'TL008', 'SV004', N'Mô tả sai thực tế', N'Mô tả là thiết kế Database hoàn chỉnh nhưng file chỉ có 2 bảng đơn giản.', N'Đã xử lý', '2026-04-27 08:00:00', '2026-04-28 16:45:00'),
+('BC008', 'TL009', 'SV010', N'Ngôn ngữ không phù hợp', N'Tài liệu sử dụng ngôn từ không chuẩn mực sư phạm trong phần ghi chú Slide.', N'Chờ xử lý', '2026-04-28 14:30:00', NULL),
+('BC009', 'TL010', 'SV001', N'Tài liệu trùng lặp', N'Tài liệu này đã tồn tại trên hệ thống với mã TL002.', N'Đã bác bỏ', '2026-04-29 09:00:00', '2026-04-29 17:00:00'),
+('BC010', 'TL001', 'SV009', N'Link tải file bị hỏng', N'Khi nhấn tải xuống hệ thống báo lỗi không tìm thấy tệp tin trên máy chủ.', N'Chờ xử lý', '2026-04-30 10:20:00', NULL);
+GO
+
 -- KIỂM TRA DỮ LIỆU
 SELECT * FROM SinhVien;
 SELECT * FROM TaiLieu;
+SELECT * FROM LoaiTaiLieu;
+select * from DoQuy
+select * from BaoCaoViPham

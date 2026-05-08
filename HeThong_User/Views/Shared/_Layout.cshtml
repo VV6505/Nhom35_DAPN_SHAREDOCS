@@ -4,13 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - UTE Document Share</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header class="header">
-        <a class="header-logo" href="@Url.Action("Index", "Home")">
+      <a class="header-logo" asp-controller="Home" asp-action="Index">
             <img src="~/images/logo.webp" alt="UTE Logo" class="logo-img" />
             <div class="logo-text">
                 HỆ THỐNG CHIA SẺ TÀI LIỆU<br />TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT

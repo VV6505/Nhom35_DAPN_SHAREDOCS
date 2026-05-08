@@ -13,6 +13,7 @@ namespace HeThong_Admin.Controllers
             _context = context;
         }
 
+        // [GET] Danh sách người dùng: Lấy toàn bộ tài khoản (Sinh viên, Giảng viên, CBK) kèm thông tin phân quyền và trạng thái.
         public async Task<IActionResult> Index(string? search, string? vaitro, string? trangthai)
         {
             var query = _context.TaiKhoans
@@ -59,6 +60,7 @@ namespace HeThong_Admin.Controllers
             return View(users);
         }
 
+        // Thêm sinh viên mới (Database sẽ tự động tạo tài khoản dựa trên mã sinh viên này)
         [HttpPost]
         public async Task<IActionResult> CreateStudent(SinhVien sv)
         {
@@ -75,6 +77,7 @@ namespace HeThong_Admin.Controllers
             return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
 
+        // [POST] Thêm giảng viên: Tiếp nhận thông tin giảng viên/CBK mới và lưu vào DB.
         [HttpPost]
         public async Task<IActionResult> CreateLecturer(GiangVien gv)
         {
@@ -91,6 +94,7 @@ namespace HeThong_Admin.Controllers
             return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
         }
 
+        // [POST] Khóa tài khoản: Cập nhật trạng thái tài khoản thành 0 (Tạm khóa) để ngăn người dùng đăng nhập.
         [HttpPost]
         public async Task<IActionResult> KhoaTaiKhoan(string id)
         {
@@ -104,7 +108,8 @@ namespace HeThong_Admin.Controllers
                     return RedirectToAction("Index");
                 }
 
-                tk.TrangThai = 0; // Tạm khóa
+                // Cập nhật trạng thái = 0 (Tạm khóa). Người dùng sẽ không thể đăng nhập được nữa.
+                tk.TrangThai = 0; 
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Index");
@@ -144,6 +149,7 @@ namespace HeThong_Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // [GET] Chi tiết người dùng: Lấy thông tin cá nhân chi tiết của một tài khoản để hiển thị trên Modal (AJAX).
         [HttpGet]
         public async Task<IActionResult> GetDetails(string id)
         {

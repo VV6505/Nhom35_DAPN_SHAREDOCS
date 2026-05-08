@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using HeThong_User.Models;
 
 namespace HeThong_User.Controllers
 {
@@ -7,13 +8,11 @@ namespace HeThong_User.Controllers
     {
         private readonly HeThongChiaSeTaiLieu_V1 _context;
         private readonly ILogger<HomeController> _logger;
-        private readonly HeThongChiaSeTaiLieu_V1 _context;
 
         public HomeController(ILogger<HomeController> logger, HeThongChiaSeTaiLieu_V1 context)
         {
             _context = context;
             _logger = logger;
-            _context = context;
         }
 
         [HttpGet]
@@ -41,7 +40,7 @@ namespace HeThong_User.Controllers
         public IActionResult Index()
         {
             // 1. Giữ nguyên các con số thống kê cho Header/Sidebar
-            ViewBag.TotalDocs = _context.TaiLieus.Count();
+            ViewBag.TotalDocs = _context.TaiLieus.Count(t => t.TrangThaiDuyet == "Đã duyệt");
             ViewBag.TotalUsers = _context.SinhViens.Count();
             ViewBag.TotalDownloads = _context.TaiLieus.Sum(t => t.LuotTai) ?? 0;
             ViewBag.TotalReports = _context.BaoCaoViPhams.Count(); // Thêm đếm báo cáo cho ô màu đỏ
@@ -64,11 +63,13 @@ namespace HeThong_User.Controllers
 
             return View(newsfeedDocs);
         }
+
         public IActionResult Students()
         {
             var dsSinhVien = _context.SinhViens.Include(s => s.MaLopNavigation).ToList();
             return View(dsSinhVien);
         }
+
         public IActionResult History()
         {
             var lichSu = _context.LichSuTaiXuongs
@@ -76,28 +77,6 @@ namespace HeThong_User.Controllers
                 .OrderByDescending(l => l.NgayTai)
                 .ToList();
             return View(lichSu);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetNotifications()
-        {
-            var userId = HttpContext.Session.GetString("MaTaiKhoan");
-            if (string.IsNullOrEmpty(userId)) return Json(new { success = false });
-
-            var notifications = await _context.ThongBaos
-                .Where(t => t.MaNguoiNhan == userId)
-                .OrderByDescending(t => t.NgayTao)
-                .Take(10)
-                .Select(t => new {
-                    t.MaTb,
-                    t.TieuDe,
-                    t.NoiDung,
-                    t.TrangThai,
-                    NgayTao = t.NgayTao.HasValue ? t.NgayTao.Value.ToString("dd/MM/yyyy HH:mm") : ""
-                })
-                .ToListAsync();
-
-            return Json(new { success = true, data = notifications });
         }
 
         public IActionResult Privacy()
@@ -109,6 +88,22 @@ namespace HeThong_User.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetLatestPoints()
+        {
+            int points = 0;
+            var maSV = HttpContext.Session.GetString("MaSinhVien");
+
+            if (!string.IsNullOrEmpty(maSV))
+            {
+                var sinhVien = await _context.SinhViens.FindAsync(maSV);
+                if (sinhVien != null)
+                {
+                    points = sinhVien.DiemTichLuy ?? 0;
+                }
+            }
+            return Json(new { success = true, points = points });
         }
     }
 }

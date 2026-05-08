@@ -14,6 +14,7 @@ namespace HeThong_Admin.Controllers
             _context = context;
         }
 
+        // Thiết lập Loại tài liệu và Điểm tích lũy tương ứng
         public async Task<IActionResult> Index()
         {
             var loaiTaiLieus = await _context.LoaiTaiLieus
@@ -29,6 +30,7 @@ namespace HeThong_Admin.Controllers
             return View(loaiTaiLieus);
         }
 
+        // Đổi tên tài liệu hoặc gắn mức độ quý (điểm) mới cho loại tài liệu đó
         [HttpPost]
         public async Task<IActionResult> UpdateLoaiTaiLieu([FromBody] JsonElement data)
         {
@@ -53,6 +55,7 @@ namespace HeThong_Admin.Controllers
             }
         }
 
+        // [POST] Cập nhật mức độ quý: Thay đổi số điểm tích lũy cần thiết để tải tài liệu thuộc mức độ này (AJAX).
         [HttpPost]
         public async Task<IActionResult> UpdateDoQuy([FromBody] JsonElement data)
         {

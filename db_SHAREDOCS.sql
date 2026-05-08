@@ -143,7 +143,7 @@ CREATE TABLE TaiLieu (
     KichThuoc FLOAT,
     LuotTai INT DEFAULT 0,
     CheDoHienThi BIT DEFAULT 1,
-    TrangThaiDuyet NVARCHAR(20) CHECK (TrangThaiDuyet IN (N'Chờ duyệt', N'Đã duyệt', N'Từ chối')) DEFAULT N'Chờ duyệt',
+    TrangThaiDuyet NVARCHAR(20) CHECK (TrangThaiDuyet IN (N'Chờ duyệt', N'Chờ Admin duyệt', N'Đã duyệt', N'Từ chối')) DEFAULT N'Chờ duyệt',
     LyDoTuChoi NVARCHAR(255),
     MaMonHoc CHAR(5),
     MaNguoiDang CHAR(5),
